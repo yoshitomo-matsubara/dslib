@@ -1,5 +1,6 @@
 package jp.mylib.science.classification;
 
+import jp.mylib.science.common.BasicAlgebra;
 import jp.mylib.science.common.BasicMath;
 import jp.mylib.science.common.FeatureVector;
 
@@ -11,7 +12,7 @@ public class AnomalyDetector
 {
     private double calcReachabilityDistance(double[] arrayX, double[] arrayY, double kthDist)
     {
-        double dist = BasicMath.calcEuclideanDistance(arrayX, arrayY);
+        double dist = BasicAlgebra.calcEuclideanDistance(arrayX, arrayY);
         return (dist > kthDist)? dist : kthDist;
     }
 
@@ -30,7 +31,7 @@ public class AnomalyDetector
         for(int i=0;i<featureVectors.length;i++)
         {
             FeatureVector featureVector = featureVectors[i];
-            double dist = BasicMath.calcEuclideanDistance(featureVector.getAllValues(), targetVector.getAllValues());
+            double dist = BasicAlgebra.calcEuclideanDistance(featureVector.getAllValues(), targetVector.getAllValues());
             distList.add(dist);
             if(!distMap.containsKey(dist))
                 distMap.put(dist, new ArrayList<Integer>());

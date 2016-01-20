@@ -4,6 +4,10 @@ import java.util.List;
 
 public class BasicAlgebra
 {
+    public static final double DEFAULT_POLYNOMIAL_KERNEL_CONSTANT = 1.0d;
+    public static final double DEFAULT_POLYNOMIAL_KERNEL_POWER = 1.0d;
+    public static final double DEFAULT_GAUSSIAN_KERNEL_SD = 0.3d;
+
     public static double calcMagnitude(double[] array)
     {
         double magnitude = 0.0d;
@@ -94,5 +98,25 @@ public class BasicAlgebra
         for(int i=0;i<listX.size();i++)
             sum += Math.pow((listX.get(i) - listY.get(i)) / sd, 2.0d);
         return Math.sqrt(sum);
+    }
+
+    public static double polynomialKernel(double[] arrayX, double[] arrayY, double c, double p)
+    {
+        return Math.pow(calcInnerProduct(arrayX, arrayY) + c, p);
+    }
+
+    public static double polynomialKernel(double[] arrayX, double[] arrayY)
+    {
+        return polynomialKernel(arrayX, arrayY, DEFAULT_POLYNOMIAL_KERNEL_CONSTANT, DEFAULT_POLYNOMIAL_KERNEL_POWER);
+    }
+
+    public static double gaussianKernel(double[] arrayX, double[] arrayY, double sd)
+    {
+        return Math.exp(BasicAlgebra.calcInnerProduct(arrayX, arrayY) / (2.0d * Math.pow(sd, 2.0d)));
+    }
+
+    public static double gaussianKernel(double[] arrayX, double[] arrayY)
+    {
+        return gaussianKernel(arrayX, arrayY, DEFAULT_GAUSSIAN_KERNEL_SD);
     }
 }
