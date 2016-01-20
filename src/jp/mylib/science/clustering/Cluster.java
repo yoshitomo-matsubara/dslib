@@ -1,6 +1,6 @@
 package jp.mylib.science.clustering;
 
-import jp.mylib.science.common.BasicMath;
+import jp.mylib.science.common.BasicAlgebra;
 import jp.mylib.science.common.FeatureVector;
 import jp.mylib.science.common.FeatureVectorUtils;
 
@@ -39,7 +39,7 @@ public class Cluster
                 int minIndex = 0;
                 for(int j=0;j<centers.length;j++)
                 {
-                    double dist = BasicMath.calcEuclideanDistance(centers[j], featureVectors[i].getAllValues());
+                    double dist = BasicAlgebra.calcEuclideanDistance(centers[j], featureVectors[i].getAllValues());
                     if(dist < minDist)
                     {
                         minDist = dist;
@@ -71,7 +71,7 @@ public class Cluster
                 for(int i=0;i<centers[0].length;i++)
                     centers[label][i] /= (double)indexList.size();
 
-                diff += BasicMath.calcEuclideanDistance(centers[label], preCenters);
+                diff += BasicAlgebra.calcEuclideanDistance(centers[label], preCenters);
             }
         }
 
