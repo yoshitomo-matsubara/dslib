@@ -4,6 +4,9 @@ import java.util.List;
 
 public class BasicAlgebra
 {
+    public static final String LINEAR_KERNEL_TYPE = "LINEAR KERNEL";
+    public static final String POLYNOMIAL_KERNEL_TYPE = "POLYNOMIAL KERNEL";
+    public static final String GAUSSIAN_KERNEL_TYPE = "GAUSSIAN KERNEL";
     public static final double DEFAULT_POLYNOMIAL_KERNEL_CONSTANT = 1.0d;
     public static final double DEFAULT_POLYNOMIAL_KERNEL_POWER = 1.0d;
     public static final double DEFAULT_GAUSSIAN_KERNEL_SD = 0.3d;
@@ -112,11 +115,29 @@ public class BasicAlgebra
 
     public static double gaussianKernel(double[] arrayX, double[] arrayY, double sd)
     {
-        return Math.exp(BasicAlgebra.calcInnerProduct(arrayX, arrayY) / (2.0d * Math.pow(sd, 2.0d)));
+        return Math.exp(BasicAlgebra.calcEuclideanDistance(arrayX, arrayY) / (2.0d * Math.pow(sd, 2.0d)));
     }
 
     public static double gaussianKernel(double[] arrayX, double[] arrayY)
     {
         return gaussianKernel(arrayX, arrayY, DEFAULT_GAUSSIAN_KERNEL_SD);
+    }
+
+    public static double kernelFunction(double[] arrayX, double[] arrayY, String kernelType)
+    {
+        if(kernelType.equals(POLYNOMIAL_KERNEL_TYPE))
+            return polynomialKernel(arrayX, arrayY);
+        else if(kernelType.equals(GAUSSIAN_KERNEL_TYPE))
+            return gaussianKernel(arrayX, arrayY);
+        return Double.NaN;
+    }
+
+    public static double kernelFunction(double[] arrayX, double[] arrayY, String kernelType, double[] kernelParams)
+    {
+        if(kernelType.equals(POLYNOMIAL_KERNEL_TYPE))
+            return polynomialKernel(arrayX, arrayY, kernelParams[0], kernelParams[1]);
+        else if(kernelType.equals(GAUSSIAN_KERNEL_TYPE))
+            return gaussianKernel(arrayX, arrayY, kernelParams[0]);
+        return Double.NaN;
     }
 }

@@ -10,9 +10,6 @@ import java.util.Random;
 
 public class Cluster
 {
-    public static final String LINEAR_KERNEL_TYPE = "LINEAR KERNEL";
-    public static final String POLYNOMIAL_KERNEL_TYPE = "POLYNOMIAL KERNEL";
-    public static final String GAUSSIAN_KERNEL_TYPE = "GAUSSIAN KERNEL";
     public static final double DEFAULT_KMEANS_TOLERANCE = 1e-4d;
     public static final int DEFAULT_KMEANS_TOLERANCE_COUNT = 1;
 
@@ -97,7 +94,7 @@ public class Cluster
 
     public static void kernelKMeans(int clusterSize, FeatureVector[] featureVectors, String kernelType, int tolerance, double[] params)
     {
-        if(kernelType.equals(LINEAR_KERNEL_TYPE))
+        if(kernelType.equals(BasicAlgebra.LINEAR_KERNEL_TYPE))
             kMeans(clusterSize, featureVectors, tolerance);
         else
         {
@@ -131,14 +128,14 @@ public class Cluster
                     {
                         double dist = 0.0d;
                         ArrayList<Integer> indexList = labelMap.get(j);
-                        // depend on a kernel type
                         double sum = 0.0d;
                         for(int k=0;k<indexList.size();k++)
                         {
-                            if(kernelType.equals(POLYNOMIAL_KERNEL_TYPE))
+                            // depend on a kernel type
+                            if(kernelType.equals(BasicAlgebra.POLYNOMIAL_KERNEL_TYPE))
                                 sum += (params.length >= 2)? BasicAlgebra.polynomialKernel(featureVectors[indexList.get(k)].getAllValues(), featureVectors[i].getAllValues(), params[0], params[1])
                                     : BasicAlgebra.polynomialKernel(featureVectors[indexList.get(k)].getAllValues(), featureVectors[i].getAllValues());
-                            else if(kernelType.equals(GAUSSIAN_KERNEL_TYPE))
+                            else if(kernelType.equals(BasicAlgebra.GAUSSIAN_KERNEL_TYPE))
                                 sum += (params.length >= 1)? BasicAlgebra.gaussianKernel(featureVectors[indexList.get(k)].getAllValues(), featureVectors[i].getAllValues(), params[0])
                                         : BasicAlgebra.gaussianKernel(featureVectors[indexList.get(k)].getAllValues(), featureVectors[i].getAllValues());
                             else
@@ -155,10 +152,11 @@ public class Cluster
                             for(int k=0;k<indexList.size();k++)
                                 for(int l=k;l<indexList.size();l++)
                                 {
-                                    if(kernelType.equals(POLYNOMIAL_KERNEL_TYPE))
+                                    // depend on a kernel type
+                                    if(kernelType.equals(BasicAlgebra.POLYNOMIAL_KERNEL_TYPE))
                                         sum += (params.length >= 2)? BasicAlgebra.polynomialKernel(featureVectors[indexList.get(k)].getAllValues(), featureVectors[indexList.get(l)].getAllValues(), params[0], params[1])
                                                 : BasicAlgebra.polynomialKernel(featureVectors[indexList.get(k)].getAllValues(), featureVectors[indexList.get(l)].getAllValues());
-                                    else if(kernelType.equals(GAUSSIAN_KERNEL_TYPE))
+                                    else if(kernelType.equals(BasicAlgebra.GAUSSIAN_KERNEL_TYPE))
                                         sum += (params.length >= 2)? BasicAlgebra.gaussianKernel(featureVectors[indexList.get(k)].getAllValues(), featureVectors[indexList.get(l)].getAllValues(), params[0])
                                                 : BasicAlgebra.gaussianKernel(featureVectors[indexList.get(k)].getAllValues(), featureVectors[indexList.get(l)].getAllValues());
                                     else
@@ -212,7 +210,7 @@ public class Cluster
 
     public static void kernelKMeans(int clusterSize, FeatureVector[] featureVectors, String kernelType, double[] params)
     {
-        if(kernelType.equals(POLYNOMIAL_KERNEL_TYPE) || kernelType.equals(GAUSSIAN_KERNEL_TYPE))
+        if(kernelType.equals(BasicAlgebra.POLYNOMIAL_KERNEL_TYPE) || kernelType.equals(BasicAlgebra.GAUSSIAN_KERNEL_TYPE))
             kernelKMeans(clusterSize, featureVectors, kernelType, DEFAULT_KMEANS_TOLERANCE_COUNT, params);
         else
             kMeans(clusterSize, featureVectors, DEFAULT_KMEANS_TOLERANCE);
