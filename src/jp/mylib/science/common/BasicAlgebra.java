@@ -115,7 +115,7 @@ public class BasicAlgebra
 
     public static double gaussianKernel(double[] arrayX, double[] arrayY, double sd)
     {
-        return Math.exp(BasicAlgebra.calcEuclideanDistance(arrayX, arrayY) / (2.0d * Math.pow(sd, 2.0d)));
+        return Math.exp(-BasicAlgebra.calcEuclideanDistance(arrayX, arrayY) / (2.0d * Math.pow(sd, 2.0d)));
     }
 
     public static double gaussianKernel(double[] arrayX, double[] arrayY)

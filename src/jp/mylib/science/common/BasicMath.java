@@ -4,6 +4,14 @@ import java.util.List;
 
 public class BasicMath
 {
+    public static int sgn(double value)
+    {
+        if(value == 0.0d)
+            return 0;
+        else
+            return (value > 0.0d)? 1 : -1;
+    }
+
     public static double calcAverage(double[] array)
     {
         double sum = 0.0d;

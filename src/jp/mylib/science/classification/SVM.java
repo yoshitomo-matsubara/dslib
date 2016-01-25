@@ -30,7 +30,7 @@ public abstract class SVM
     }
 
     public abstract void train(FeatureVector[] featureVectors);
-    public abstract void predict(FeatureVector[] featureVectors);
+    public abstract int predict(FeatureVector featureVector);
     public abstract void inputModel(String modelFilePath);
     public abstract void outputModel(String modelFilePath);
 }
