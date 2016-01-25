@@ -3,17 +3,22 @@ package jp.mylib.science.classification;
 import jp.mylib.science.common.BasicAlgebra;
 import jp.mylib.science.common.FeatureVector;
 
+import java.util.ArrayList;
+
 public class OneClassSVM extends SVM
 {
     public static final String SCHOLKOPF = "Scholkopf";
     public static final String TAX_AND_DUIN = "Tax and Duin";
+    public static final double WSS3_TAU = 1.0e-4d;
+    public static final double L_ALPHA_TORELANCE = 1.0e-4d;
     private FeatureVector weightedVector;
-    private String svmType, kernelType;
+    private String id, svmType, kernelType;
     private double regParam, radius;
     private double[] kernelParams;
 
-    public OneClassSVM(double regParam, String svmType, String kernelType, double[] kernelParams)
+    public OneClassSVM(String id, double regParam, String svmType, String kernelType, double[] kernelParams)
     {
+        this.id = id;
         this.regParam = regParam;
         this.svmType = svmType;
         this.kernelType = kernelType;
@@ -23,15 +28,63 @@ public class OneClassSVM extends SVM
             this.kernelParams[i] = kernelParams[i];
     }
 
-    private boolean isConvergent()
+    private boolean isConvergent(double[] lagrangeAlphas)
     {
-        return false;
+        double c = (this.svmType.equals(SCHOLKOPF))? 1.0d / ((double)lagrangeAlphas.length * this.regParam) : this.regParam;
+        double sum = 0.0d;
+        for(double value : lagrangeAlphas)
+        {
+            // Constraint condition (a)
+            if(value < 0.0d || value > c)
+                return false;
+            sum += value;
+        }
+        // Constraint condition (b)
+        if(!(sum >= 1.0d - L_ALPHA_TORELANCE && sum <= 1.0d + L_ALPHA_TORELANCE))
+            return false;
+
+        return true;
     }
 
+    // WSS3 for one-class svm
     private int[] workingSetSelection3(double[][] kernelMatrix, double[] lagrangeAlphas, double[] gradients)
     {
         int[] indices = new int[2];
-        // eq(20)
+        ArrayList<Integer> upIndexList = new ArrayList<Integer>();
+        ArrayList<Integer> lowIndexList = new ArrayList<Integer>();
+        double c = (this.svmType.equals(SCHOLKOPF))? 1.0d / ((double)kernelMatrix.length * this.regParam) : this.regParam;
+        for(int i=0;i<lagrangeAlphas.length;i++)
+        {
+            if(gradients[i] < c)
+                upIndexList.add(i);
+            else if(gradients[i] > 0.0d)
+                lowIndexList.add(i);
+        }
+
+        // select i = indices[0]
+        double max = Double.MIN_VALUE;
+        for(int index : upIndexList)
+            if(-gradients[index] > max)
+            {
+                max = -gradients[index];
+                indices[0] = index;
+            }
+
+        // select j = indices[1]
+        double min = Double.MAX_VALUE;
+        int i = indices[0];
+        for(int index : lowIndexList)
+        {
+            double a = kernelMatrix[i][i] + kernelMatrix[index][index] - 2.0d * kernelMatrix[i][index];
+            double aBar = (a > 0.0d)? a : WSS3_TAU;
+            double b = -gradients[i] + gradients[index];
+            double value = -Math.pow(b, 2.0d) / aBar;
+            if(gradients[index] < gradients[i] && value < min)
+            {
+                min = value;
+                indices[1] = index;
+            }
+        }
 
         return indices;
     }
@@ -57,7 +110,7 @@ public class OneClassSVM extends SVM
             lagrangeAlphas[i] = (i <= (int)(this.regParam * (double)trainingSize))? 1.0d / (double)lagrangeAlphas.length : 0.0d;
 
         gradients = updateGradients(kernelMatrix, lagrangeAlphas);
-        while(isConvergent())
+        while(isConvergent(lagrangeAlphas))
         {
             int[] targetIndices = workingSetSelection3(kernelMatrix, lagrangeAlphas, gradients);
             int i = targetIndices[0];
@@ -71,7 +124,7 @@ public class OneClassSVM extends SVM
             double oldAlphaJ = lagrangeAlphas[j];
             lagrangeAlphas[i] += labelI * b / a;
             lagrangeAlphas[j] -= labelJ * b / a;
-            double c = 1.0d / ((double)trainingSize * this.regParam);
+            double c = (this.svmType.equals(SCHOLKOPF))? 1.0d / ((double)trainingSize * this.regParam) : this.regParam;
             if(!(0.0d <= lagrangeAlphas[i] && lagrangeAlphas[i] <= c))
             {
                 if(lagrangeAlphas[i] < 0.0d)
