@@ -3,6 +3,8 @@ package jp.mylib.science.classification;
 import jp.mylib.science.common.BasicAlgebra;
 import jp.mylib.science.common.FeatureVector;
 
+import java.util.List;
+
 public abstract class SVM
 {
     public double[][] calcKernelMatrix(FeatureVector[] featureVectors, String kernelType)
@@ -30,7 +32,11 @@ public abstract class SVM
     }
 
     public abstract void train(FeatureVector[] featureVectors);
+    public abstract void train(List<FeatureVector> featureVectorList);
     public abstract int predict(FeatureVector featureVector);
+    public abstract double leaveOneOutCrossValidation(List<FeatureVector> featureVectorList);
+    public abstract double leaveOneOutCrossValidation(FeatureVector[] featureVectors);
+    public abstract void reset();
     public abstract void inputModel(String modelFilePath);
     public abstract void outputModel(String modelFilePath);
 }

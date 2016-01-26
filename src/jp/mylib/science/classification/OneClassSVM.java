@@ -5,6 +5,8 @@ import jp.mylib.science.common.BasicMath;
 import jp.mylib.science.common.FeatureVector;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class OneClassSVM extends SVM
 {
@@ -15,7 +17,7 @@ public class OneClassSVM extends SVM
     public static final int NORMAL_VALUE = 1;
     public static final int OUTLIER = -1;
     private String id, svmType, kernelType;
-    private double regParam, tolerance, radius, rho;
+    private double regParam, tolerance, rho, radius;
     private double[] kernelParams, alphas;
     private double[][] kernelMatrix;
     private FeatureVector[] trainedFeatureVectors;
@@ -27,8 +29,8 @@ public class OneClassSVM extends SVM
         this.svmType = svmType;
         this.kernelType = kernelType;
         this.tolerance = tolerance;
-        this.radius = Double.NaN;
         this.rho = Double.NaN;
+        this.radius = Double.NaN;
         this.kernelParams = new double[kernelParams.length];
         for(int i=0;i<this.kernelParams.length;i++)
             this.kernelParams[i] = kernelParams[i];
@@ -200,7 +202,7 @@ public class OneClassSVM extends SVM
         for(int i=0;i<this.alphas.length;i++)
         {
             this.alphas[i] = this.alphas[i];
-            if(0.0d > this.alphas[i] || this.alphas[i] > c)
+            if(0.0d < this.alphas[i] && this.alphas[i] < c)
                 indexList.add(i);
         }
         double intercept = 0.0d;
@@ -233,6 +235,12 @@ public class OneClassSVM extends SVM
             System.err.println(this.svmType + " is an invalid SVM type.");
     }
 
+    @Override
+    public void train(List<FeatureVector> featureVectorList)
+    {
+        train((FeatureVector[]) featureVectorList.toArray());
+    }
+
     private int predictScholkopf(FeatureVector featureVector)
     {
         double score = 0.0d;
@@ -262,13 +270,59 @@ public class OneClassSVM extends SVM
 
             else
                 return predictWithoutTraining();
-
         }
 
         if(this.radius == Double.NaN)
             return predictWithoutTraining();
 
         return predictWithoutTraining();
+    }
+
+    @Override
+    public double leaveOneOutCrossValidation(List<FeatureVector> featureVectorList)
+    {
+        int successCount = 0;
+        int size = featureVectorList.size();
+        for(int i=0;i<size;i++)
+        {
+            FeatureVector testFeatureVector = featureVectorList.get(0);
+            featureVectorList.remove(0);
+            train(featureVectorList);
+            if(predict(testFeatureVector) == NORMAL_VALUE)
+                successCount++;
+
+            featureVectorList.add(testFeatureVector);
+        }
+
+        // return accuracy
+        return (double)successCount / (double)size;
+    }
+
+    @Override
+    public double leaveOneOutCrossValidation(FeatureVector[] featureVectors)
+    {
+        return leaveOneOutCrossValidation(Arrays.asList(featureVectors));
+    }
+
+    @Override
+    public void reset()
+    {
+        this.alphas = new double[0];
+        this.kernelMatrix = new double[0][0];
+        this.rho = Double.NaN;
+        this.radius = Double.NaN;
+        this.trainedFeatureVectors = new FeatureVector[0];
+    }
+
+    public void reset(double regParam, double tolerance, String kernelType, double[] kernelParams)
+    {
+        reset();
+        this.regParam = regParam;
+        this.tolerance = tolerance;
+        this.kernelType = kernelType;
+        this.kernelParams = new double[kernelParams.length];
+        for(int i=0;i<kernelParams.length;i++)
+            this.kernelParams[i] = kernelParams[i];
     }
 
     @Override
