@@ -4,29 +4,32 @@ import jp.mylib.science.common.BasicAlgebra;
 import jp.mylib.science.common.BasicMath;
 import jp.mylib.science.common.FeatureVector;
 
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class OneClassSvm extends Svm
 {
+    public static final String ONE_CLASS_SVM = "One-class SVM";
     public static final String SCHOLKOPF = "Scholkopf";
     public static final String TAX_AND_DUIN = "Tax and Duin";
+    public static final String DELIMITER = "\t";
     public static final double WSS3_TAU = 1.0e-4d;
     public static final double DEFAULT_TOLERANCE = 1.0e-4d;
     public static final int NORMAL_VALUE = 1;
     public static final int OUTLIER = -1;
-    private String id, svmType, kernelType;
+    private String id, method, kernelType;
     private double regParam, tolerance, rho, radius;
     private double[] kernelParams, alphas;
     private double[][] kernelMatrix;
     private FeatureVector[] trainedFeatureVectors;
 
-    public OneClassSvm(String id, double regParam, double tolerance, String svmType, String kernelType, double[] kernelParams)
+    public OneClassSvm(String id, double regParam, double tolerance, String method, String kernelType, double[] kernelParams)
     {
         this.id = id;
         this.regParam = regParam;
-        this.svmType = svmType;
+        this.method = method;
         this.kernelType = kernelType;
         this.tolerance = tolerance;
         this.rho = Double.NaN;
@@ -36,9 +39,16 @@ public class OneClassSvm extends Svm
             this.kernelParams[i] = kernelParams[i];
     }
 
+    public OneClassSvm(String modelFilePath)
+    {
+        this.rho = Double.NaN;
+        this.radius = Double.NaN;
+        inputModel(modelFilePath);
+    }
+
     private void setUpLowIndexLists(double[] gradients, ArrayList<Integer> upIndexList, ArrayList<Integer> lowIndexList)
     {
-        double c = (this.svmType.equals(SCHOLKOPF))? 1.0d / ((double)gradients.length * this.regParam) : this.regParam;
+        double c = (this.method.equals(SCHOLKOPF))? 1.0d / ((double)gradients.length * this.regParam) : this.regParam;
         for(int i=0;i<this.alphas.length;i++)
         {
             if(gradients[i] < c)
@@ -158,7 +168,7 @@ public class OneClassSvm extends Svm
             changedArray[i] = false;
 
         gradients = updateGradients();
-        double c = (this.svmType.equals(SCHOLKOPF))? 1.0d / ((double)trainingSize * this.regParam) : this.regParam;
+        double c = (this.method.equals(SCHOLKOPF))? 1.0d / ((double)trainingSize * this.regParam) : this.regParam;
         while(!isConvergent(gradients, changedArray))
         {
             int[] targetIndices = selectIndexPairByWorkingSetSelection3(gradients);
@@ -228,12 +238,12 @@ public class OneClassSvm extends Svm
         for(int i=0;i<featureVectors.length;i++)
             this.trainedFeatureVectors[i] = featureVectors[i];
 
-        if(this.svmType.equals(SCHOLKOPF))
+        if(this.method.equals(SCHOLKOPF))
             trainScholkopf();
-        else if(this.svmType.equals(TAX_AND_DUIN))
+        else if(this.method.equals(TAX_AND_DUIN))
             trainTaxAndDuin();
         else
-            System.err.println(this.svmType + " is an invalid Svm type.");
+            System.err.println(this.method + " is an invalid Svm type.");
     }
 
     @Override
@@ -269,9 +279,9 @@ public class OneClassSvm extends Svm
     @Override
     public int predict(FeatureVector featureVector)
     {
-        if(this.svmType.equals(SCHOLKOPF) && this.rho != Double.NaN)
+        if(this.method.equals(SCHOLKOPF) && this.rho != Double.NaN)
                 return predictScholkopf(featureVector);
-        else if(this.svmType.equals(TAX_AND_DUIN) && this.radius == Double.NaN)
+        else if(this.method.equals(TAX_AND_DUIN) && this.radius == Double.NaN)
                 return predictTaxAndDuin(featureVector);
 
         return predictWithoutTraining();
@@ -324,15 +334,175 @@ public class OneClassSvm extends Svm
             this.kernelParams[i] = kernelParams[i];
     }
 
+    public void doParamsGridSearch(double[] regParams, double[][] kernelParamMatrix, boolean changeable)
+    {
+        // array[0]: start, array[1]: end, array[2]: step size
+        // array[x][0]: start, array[x][1]: end, array[x][2]: step size
+        double orgRegParam = this.regParam;
+        double[] orgKernelParams = new double[this.kernelParams.length];
+        for(int i=0;i<orgKernelParams.length;i++)
+            orgKernelParams[i] = this.kernelParams[i];
+
+        double bestAccuracy = Double.MIN_VALUE;
+        double bestRegParam = Double.NaN;
+        double[] bestKernelParams = new double[kernelParamMatrix.length];
+        for(double c=regParams[0];c<regParams[1];c+=regParams[2])
+        {
+            if(orgKernelParams.length == 1)
+                for(double a=kernelParamMatrix[0][0];a<kernelParamMatrix[0][1];a+=kernelParamMatrix[0][2])
+                {
+                    this.regParam = c;
+                    this.kernelParams[0] = a;
+                    double accuracy = leaveOneOutCrossValidation(this.trainedFeatureVectors);
+                    if(accuracy > bestAccuracy)
+                    {
+                        bestAccuracy = accuracy;
+                        bestRegParam = c;
+                        bestKernelParams[0] = a;
+                    }
+                }
+            else
+                for(double a=kernelParamMatrix[0][0];a<kernelParamMatrix[0][1];a+=kernelParamMatrix[0][2])
+                {
+                    for(double b=kernelParamMatrix[1][0];b<kernelParamMatrix[1][1];b+=kernelParamMatrix[1][2])
+                    {
+                        this.regParam = c;
+                        this.kernelParams[0] = a;
+                        this.kernelParams[1] = b;
+                        double accuracy = leaveOneOutCrossValidation(this.trainedFeatureVectors);
+                        if(accuracy > bestAccuracy)
+                        {
+                            bestAccuracy = accuracy;
+                            bestRegParam = c;
+                            bestKernelParams[0] = a;
+                            bestKernelParams[1] = b;
+                        }
+                    }
+                }
+        }
+
+        System.out.println("Best accuracy = " + (bestAccuracy * 100.0d));
+        System.out.println("Kernel type = " + this.kernelType);
+        System.out.println("regParam = " + bestRegParam);
+        for(int i=0;i<bestKernelParams.length;i++)
+            System.out.println("param" + (i + 1) + " = " + bestKernelParams[i]);
+
+        this.regParam = (changeable)? bestRegParam : orgRegParam;
+        for(int i=0;i<orgKernelParams.length;i++)
+            this.kernelParams[i] = (changeable)? bestKernelParams[i] : orgKernelParams[i];
+    }
+
     @Override
     public void inputModel(String modelFilePath)
     {
+        String errorMsg = "This model is not for One-class SVM.";
+        File modelFile = new File(modelFilePath);
+        try
+        {
+            BufferedReader br = new BufferedReader(new FileReader(modelFile));
+            if(!br.readLine().equals(ONE_CLASS_SVM))
+            {
+                System.err.println(errorMsg);
+                return;
+            }
 
+            this.id = br.readLine().split(DELIMITER)[1];
+            this.method = br.readLine().split(DELIMITER)[1];;
+            if(!this.method.equals(SCHOLKOPF) && !this.method.equals(TAX_AND_DUIN))
+            {
+                System.err.println(errorMsg);
+                return;
+            }
+
+            this.regParam = Double.parseDouble(br.readLine().split(DELIMITER)[1]);
+            this.tolerance = Double.parseDouble(br.readLine().split(DELIMITER)[1]);
+            String[] params = br.readLine().split(DELIMITER);
+            this.kernelType = params[1];
+            for(int i=2;i<params.length;i++)
+                this.kernelParams[i - 1] = Double.parseDouble(params[i]);
+
+            if(this.method.equals(SCHOLKOPF))
+                this.rho = Double.parseDouble(br.readLine().split(DELIMITER)[1]);
+            else if(this.method.equals(TAX_AND_DUIN))
+                this.radius = Double.parseDouble(br.readLine().split(DELIMITER)[1]);
+
+            if(!br.readLine().equals("alpha"))
+            {
+                System.err.println(errorMsg);
+                return;
+            }
+
+            params = br.readLine().split(DELIMITER);
+            this.alphas = new double[params.length];
+            for(int i=0;i<this.alphas.length;i++)
+                this.alphas[i] = Double.parseDouble(params[i]);
+
+            if(!br.readLine().equals("kernel matrix"))
+            {
+                System.err.println(errorMsg);
+                return;
+            }
+
+            this.kernelMatrix = new double[this.alphas.length][this.alphas.length];
+            for(int i=0;i<this.alphas.length;i++)
+            {
+                params = br.readLine().split(DELIMITER);
+                for(int j=0;j<params.length;j++)
+                    this.kernelMatrix[i][j] = Double.parseDouble(params[j]);
+            }
+
+            br.close();
+        }
+        catch(Exception e)
+        {
+            System.err.println("Exception @ inputModel(String) : " + e.toString());
+        }
     }
 
     @Override
     public void outputModel(String modelFilePath)
     {
+        File modelFile = new File(modelFilePath);
+        try
+        {
+            BufferedWriter bw = new BufferedWriter(new FileWriter(modelFile));
+            bw.write(ONE_CLASS_SVM);
+            bw.newLine();
+            bw.write("id" + DELIMITER + this.id);
+            bw.newLine();
+            bw.write("method" + DELIMITER + this.method);
+            bw.newLine();
+            bw.write("regulation param" + DELIMITER + this.regParam);
+            bw.newLine();
+            bw.write("tolerance" + DELIMITER + this.tolerance);
+            bw.newLine();
+            bw.write("kernel" + DELIMITER + this.kernelType);
+            for(int i=0;i<this.kernelParams.length;i++)
+                bw.write("" + DELIMITER + this.kernelParams[i]);
 
+            bw.newLine();
+            if(this.method.equals(SCHOLKOPF))
+                bw.write("rho" + DELIMITER + this.rho);
+            else if(this.method.equals(TAX_AND_DUIN))
+                bw.write("radius" + DELIMITER + this.radius);
+
+            bw.newLine();
+            bw.write("alpha");
+            for(int i=0;i<this.alphas.length;i++)
+                bw.write((i == 0)? String.valueOf(this.alphas[i]) : DELIMITER + this.alphas[i]);
+
+            bw.newLine();
+            bw.write("kernel matrix");
+            bw.newLine();
+            for(int i=0;i<this.kernelMatrix.length;i++)
+                for(int j=0;j<this.kernelMatrix[0].length;j++)
+                    bw.write((j == 0)? String.valueOf(this.kernelMatrix[i][j]) : "" + DELIMITER + this.kernelMatrix[i][j]);
+
+            bw.close();
+        }
+        catch(Exception e)
+        {
+            System.err.println("Exception @ outputModel(String) : " + e.toString());
+        }
     }
 }
