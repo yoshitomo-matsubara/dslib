@@ -346,10 +346,10 @@ public class OneClassSvm extends Svm
         double bestAccuracy = Double.MIN_VALUE;
         double bestRegParam = Double.NaN;
         double[] bestKernelParams = new double[kernelParamMatrix.length];
-        for(double c=regParams[0];c<regParams[1];c+=regParams[2])
+        for(double c=regParams[0];c<=regParams[1];c+=regParams[2])
         {
             if(orgKernelParams.length == 1)
-                for(double a=kernelParamMatrix[0][0];a<kernelParamMatrix[0][1];a+=kernelParamMatrix[0][2])
+                for(double a=kernelParamMatrix[0][0];a<=kernelParamMatrix[0][1];a+=kernelParamMatrix[0][2])
                 {
                     this.regParam = c;
                     this.kernelParams[0] = a;
@@ -362,9 +362,8 @@ public class OneClassSvm extends Svm
                     }
                 }
             else
-                for(double a=kernelParamMatrix[0][0];a<kernelParamMatrix[0][1];a+=kernelParamMatrix[0][2])
-                {
-                    for(double b=kernelParamMatrix[1][0];b<kernelParamMatrix[1][1];b+=kernelParamMatrix[1][2])
+                for(double a=kernelParamMatrix[0][0];a<=kernelParamMatrix[0][1];a+=kernelParamMatrix[0][2])
+                    for(double b=kernelParamMatrix[1][0];b<=kernelParamMatrix[1][1];b+=kernelParamMatrix[1][2])
                     {
                         this.regParam = c;
                         this.kernelParams[0] = a;
@@ -378,7 +377,6 @@ public class OneClassSvm extends Svm
                             bestKernelParams[1] = b;
                         }
                     }
-                }
         }
 
         System.out.println("Best accuracy = " + (bestAccuracy * 100.0d));
