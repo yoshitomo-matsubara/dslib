@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class OneClassSVM extends SVM
+public class OneClassSvm extends Svm
 {
     public static final String SCHOLKOPF = "Scholkopf";
     public static final String TAX_AND_DUIN = "Tax and Duin";
@@ -22,7 +22,7 @@ public class OneClassSVM extends SVM
     private double[][] kernelMatrix;
     private FeatureVector[] trainedFeatureVectors;
 
-    public OneClassSVM(String id, double regParam, double tolerance, String svmType, String kernelType, double[] kernelParams)
+    public OneClassSvm(String id, double regParam, double tolerance, String svmType, String kernelType, double[] kernelParams)
     {
         this.id = id;
         this.regParam = regParam;
@@ -136,6 +136,7 @@ public class OneClassSVM extends SVM
         double[] gradients = new double[this.alphas.length];
         for(int i=0;i<gradients.length;i++)
             gradients[i] = BasicAlgebra.calcInnerProduct(this.kernelMatrix[i], this.alphas) - 1.0d;
+
         return gradients;
     }
 
@@ -144,7 +145,7 @@ public class OneClassSVM extends SVM
     private void trainScholkopf()
     {
         int trainingSize = this.trainedFeatureVectors.length;
-        this.kernelMatrix = calcKernelMatrix(this.trainedFeatureVectors, this.kernelType);
+        this.kernelMatrix = calcKernelMatrix(this.trainedFeatureVectors, this.kernelType, this.kernelParams);
         // init an alpha array (Working Set Selection 3)
         this.alphas = new double[trainingSize];
         double[] gradients = new double[trainingSize];
@@ -232,13 +233,13 @@ public class OneClassSVM extends SVM
         else if(this.svmType.equals(TAX_AND_DUIN))
             trainTaxAndDuin();
         else
-            System.err.println(this.svmType + " is an invalid SVM type.");
+            System.err.println(this.svmType + " is an invalid Svm type.");
     }
 
     @Override
     public void train(List<FeatureVector> featureVectorList)
     {
-        train((FeatureVector[]) featureVectorList.toArray());
+        train(featureVectorList.toArray(new FeatureVector[featureVectorList.size()]));
     }
 
     private int predictScholkopf(FeatureVector featureVector)
@@ -254,6 +255,11 @@ public class OneClassSVM extends SVM
         return BasicMath.sgn(score - this.rho);
     }
 
+    private int predictTaxAndDuin(FeatureVector featureVector)
+    {
+        return 1;
+    }
+
     private int predictWithoutTraining()
     {
         System.err.println("The train method must be called before the predict method.");
@@ -263,17 +269,10 @@ public class OneClassSVM extends SVM
     @Override
     public int predict(FeatureVector featureVector)
     {
-        if(this.svmType.equals(SCHOLKOPF))
-        {
-            if(this.rho != Double.NaN)
+        if(this.svmType.equals(SCHOLKOPF) && this.rho != Double.NaN)
                 return predictScholkopf(featureVector);
-
-            else
-                return predictWithoutTraining();
-        }
-
-        if(this.radius == Double.NaN)
-            return predictWithoutTraining();
+        else if(this.svmType.equals(TAX_AND_DUIN) && this.radius == Double.NaN)
+                return predictTaxAndDuin(featureVector);
 
         return predictWithoutTraining();
     }

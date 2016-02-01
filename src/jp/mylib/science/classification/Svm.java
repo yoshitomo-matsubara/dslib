@@ -5,7 +5,7 @@ import jp.mylib.science.common.FeatureVector;
 
 import java.util.List;
 
-public abstract class SVM
+public abstract class Svm
 {
     public double[][] calcKernelMatrix(FeatureVector[] featureVectors, String kernelType)
     {

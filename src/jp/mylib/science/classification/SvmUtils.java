@@ -1,6 +1,5 @@
 package jp.mylib.science.classification;
 
-public class SVMUtils
+public class SvmUtils
 {
-    
 }
