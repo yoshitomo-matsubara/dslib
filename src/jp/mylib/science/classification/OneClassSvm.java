@@ -15,10 +15,10 @@ public class OneClassSvm extends Svm
     public static final String SCHOLKOPF = "Scholkopf";
     public static final String TAX_AND_DUIN = "Tax and Duin";
     public static final String DELIMITER = "\t";
-    public static final double WSS3_TAU = 1.0e-4d;
-    public static final double DEFAULT_TOLERANCE = 1.0e-4d;
-    public static final int NORMAL_VALUE = 1;
-    public static final int OUTLIER = -1;
+    public static final double WSS3_TAU = 1.0e-12d;
+    public static final double DEFAULT_TOLERANCE = 1.0e-3d;
+    public static final int NORMAL_LABEL = 1;
+    public static final int OUTLIER_LABEL = -1;
     private String id, method, kernelType;
     private double regParam, tolerance, rho, radius;
     private double[] kernelParams, alphas;
@@ -61,184 +61,84 @@ public class OneClassSvm extends Svm
         inputModel(modelFilePath);
     }
 
-    private void setUpLowIndexLists(double[] gradients, ArrayList<Integer> upIndexList, ArrayList<Integer> lowIndexList)
-    {
-        double c = (this.method.equals(SCHOLKOPF))? 1.0d / ((double)gradients.length * this.regParam) : this.regParam;
-        for(int i=0;i<this.alphas.length;i++)
-        {
-            if(gradients[i] < c)
-                upIndexList.add(i);
-            else if(gradients[i] > 0.0d)
-                lowIndexList.add(i);
-        }
-    }
-
-    // select a value pair by WSS3 for one-class svm
-    private double[] selectValuePairByWorkingSetSelection3(double[] gradients)
-    {
-        ArrayList<Integer> upIndexList = new ArrayList<Integer>();
-        ArrayList<Integer> lowIndexList = new ArrayList<Integer>();
-        setUpLowIndexLists(gradients, upIndexList, lowIndexList);
-
-        // select i
-        int i = 0;
-        double max = Double.MIN_VALUE;
-        for(int index : upIndexList)
-            if(-gradients[index] > max)
-            {
-                max = -gradients[index];
-                i = index;
-            }
-
-        // select j
-        double min = Double.MAX_VALUE;
-        for(int index : lowIndexList)
-        {
-            double a = this.kernelMatrix[i][i] + this.kernelMatrix[index][index] - 2.0d * this.kernelMatrix[i][index];
-            double aBar = (a > 0.0d)? a : WSS3_TAU;
-            double b = -gradients[i] + gradients[index];
-            double value = -Math.pow(b, 2.0d) / aBar;
-            if(gradients[index] < gradients[i] && value < min)
-                min = value;
-        }
-
-        double[] values = {max, min};
-        return values;
-    }
-
-    private boolean isConvergent(double[] gradients, boolean[] changedArray)
-    {
-        for(boolean changed : changedArray)
-            if(!changed)
-                return false;
-
-        // KKT optimality condition in C. Chang and C. Lin "LIBSVM: A Library for Support Vector Machines"
-        ArrayList<Integer> upIndexList = new ArrayList<Integer>();
-        ArrayList<Integer> lowIndexList = new ArrayList<Integer>();
-        setUpLowIndexLists(gradients, upIndexList, lowIndexList);
-        double[] targetValues = selectValuePairByWorkingSetSelection3(gradients);
-        return targetValues[0] - targetValues[1] <= this.tolerance;
-    }
-
-    // select a index pair by WSS3 for one-class svm
-    private int[] selectIndexPairByWorkingSetSelection3(double[] gradients)
-    {
-        int[] indices = new int[2];
-        ArrayList<Integer> upIndexList = new ArrayList<Integer>();
-        ArrayList<Integer> lowIndexList = new ArrayList<Integer>();
-        setUpLowIndexLists(gradients, upIndexList, lowIndexList);
-
-        // select i = indices[0]
-        double max = Double.MIN_VALUE;
-        for(int index : upIndexList)
-            if(-gradients[index] > max)
-            {
-                max = -gradients[index];
-                indices[0] = index;
-            }
-
-        // select j = indices[1]
-        double min = Double.MAX_VALUE;
-        int i = indices[0];
-        for(int index : lowIndexList)
-        {
-            double a = this.kernelMatrix[i][i] + this.kernelMatrix[index][index] - 2.0d * this.kernelMatrix[i][index];
-            double aBar = (a > 0.0d)? a : WSS3_TAU;
-            double b = -gradients[i] + gradients[index];
-            double value = -Math.pow(b, 2.0d) / aBar;
-            if(gradients[index] < gradients[i] && value < min)
-            {
-                min = value;
-                indices[1] = index;
-            }
-        }
-
-        return indices;
-    }
-
-    private double[] updateGradients()
-    {
-        double[] gradients = new double[this.alphas.length];
-        for(int i=0;i<gradients.length;i++)
-            gradients[i] = BasicAlgebra.calcInnerProduct(this.kernelMatrix[i], this.alphas) - 1.0d;
-
-        return gradients;
-    }
-
     // B. Scholkopf et. al. "Support Vector Method for Novelty Detection"
     //      and R. Fan et. al. "Working Set Selection Using Second Order Information for Training Support Vector Machines"
     private void trainScholkopf()
     {
         int trainingSize = this.trainedFeatureVectors.length;
         this.kernelMatrix = calcKernelMatrix(this.trainedFeatureVectors, this.kernelType, this.kernelParams);
-        // init an alpha array (Working Set Selection 3)
+        // initialize an alpha array (Working Set Selection 3)
         this.alphas = new double[trainingSize];
+        int[] labels = new int[trainingSize];
         double[] gradients = new double[trainingSize];
+        double vl = this.regParam * (double)trainingSize;
         for(int i=0;i<this.alphas.length;i++)
-            this.alphas[i] = (i <= (int)(this.regParam * (double)trainingSize))? 1.0d / (double)this.alphas.length : 0.0d;
-
-        // SMO
-        boolean[] changedArray = new boolean[trainingSize];
-        for(int i=0;i<changedArray.length;i++)
-            changedArray[i] = false;
-
-        gradients = updateGradients();
-        double c = (this.method.equals(SCHOLKOPF))? 1.0d / ((double)trainingSize * this.regParam) : this.regParam;
-        while(!isConvergent(gradients, changedArray))
         {
-            int[] targetIndices = selectIndexPairByWorkingSetSelection3(gradients);
-            int i = targetIndices[0];
-            int j = targetIndices[1];
-            // Either of labels I or J should be -1.0d for binary classification, depending on feature vector's label
-            double labelI = 1.0d;
-            double labelJ = 1.0d;
-            double a = this.kernelMatrix[i][i] + this.kernelMatrix[j][j] - 2.0d * this.kernelMatrix[i][j];
-            double b = -labelI * gradients[i] + labelJ * gradients[j];
+            labels[i] = NORMAL_LABEL;
+            if(i < (int)Math.floor(vl) - 1)
+                this.alphas[i] = 1.0d / vl;
+            else if(i < (int)Math.floor(vl))
+                this.alphas[i] = vl - Math.floor(vl);
+            else
+                this.alphas[i] = 0.0d;
+        }
+
+        for(int i=0;i<gradients.length;i++)
+            gradients[i] = BasicAlgebra.calcInnerProduct(this.kernelMatrix[i], this.alphas);
+
+        double c =  1.0d / ((double)trainingSize * this.regParam);
+        while(true)
+        {
+            int[] workingSet = SvmUtils.workingSetSelection3(c, WSS3_TAU, this.tolerance, labels, this.kernelMatrix, this.alphas, gradients);
+            int i = workingSet[0];
+            int j = workingSet[1];
+            if(j == -1)
+                break;
+
+            double a = this.kernelMatrix[i][i] + this.kernelMatrix[j][j] - 2.0d * (double)(labels[i] * labels[j]) * this.kernelMatrix[i][j];
+            double b = -(double)labels[i] * gradients[i] + (double)labels[j] * gradients[j];
+            if(a <= 0.0d)
+                a = WSS3_TAU;
+
+            // update alphas
             double oldAlphaI = this.alphas[i];
             double oldAlphaJ = this.alphas[j];
-            this.alphas[i] += labelI * b / a;
-            this.alphas[j] -= labelJ * b / a;
-            if(0.0d > this.alphas[i] || this.alphas[i] > c)
-            {
-                if(this.alphas[i] < 0.0d)
-                    this.alphas[i] = 0.0d;
-                else if(this.alphas[i] > c)
-                    this.alphas[i] = c;
+            this.alphas[i] += (double)labels[i] * b / a;
+            this.alphas[j] -= (double)labels[j] * b / a;
+            // project alphas back to the feasible region
+            double sum = (double)labels[i] * oldAlphaI + (double)labels[j] * oldAlphaJ;
+            if(this.alphas[i] > c)
+                this.alphas[i] = c;
 
-                this.alphas[j] = this.alphas[j] + labelI * labelJ * (oldAlphaI - this.alphas[i]);
-            }
-            else if(0.0d > this.alphas[j] || this.alphas[j] > c)
-            {
-                if(this.alphas[j] < 0.0d)
-                    this.alphas[j] = 0.0d;
-                else if(this.alphas[j] > c)
-                    this.alphas[j] = c;
+            if(this.alphas[i] < 0.0d)
+                this.alphas[i] = 0.0d;
 
-                this.alphas[i] = this.alphas[i] + labelI * labelJ * (oldAlphaJ - this.alphas[j]);
-            }
+            this.alphas[j] = (double)labels[j] * (sum - (double)labels[i] * this.alphas[i]);
+            if(this.alphas[j] > c)
+                this.alphas[j] = c;
 
-            changedArray[i] = Math.abs(this.alphas[i] - oldAlphaI) > DEFAULT_TOLERANCE;
-            changedArray[j] = Math.abs(this.alphas[j] - oldAlphaJ) > DEFAULT_TOLERANCE;
-            gradients = updateGradients();
+            if(this.alphas[j] < 0.0d)
+                this.alphas[j] = 0.0d;
+
+            this.alphas[i] = (double)labels[i] * (sum - (double)labels[j] * this.alphas[j]);
+            // update gradients
+            double deltaAlphaI = this.alphas[i] - oldAlphaI;
+            double deltaAlphaJ = this.alphas[j] - oldAlphaJ;
+            for(int t = 0;t<gradients.length;t++)
+                gradients[t] += this.kernelMatrix[t][i] * deltaAlphaI + this.kernelMatrix[t][j] * deltaAlphaJ;
         }
 
         // calculate rho
-        this.alphas = new double[this.alphas.length];
         ArrayList<Integer> indexList = new ArrayList<Integer>();
         for(int i=0;i<this.alphas.length;i++)
-        {
-            this.alphas[i] = this.alphas[i];
             if(0.0d < this.alphas[i] && this.alphas[i] < c)
                 indexList.add(i);
-        }
+
         double intercept = 0.0d;
         for(int index : indexList)
             intercept += gradients[index];
 
         this.rho = intercept / (double)indexList.size();
-        for(int i=0;i<this.kernelMatrix.length;i++)
-            for(int j=i;j<this.kernelMatrix[0].length;j++)
-                this.kernelMatrix[i][j] = this.kernelMatrix[j][i] =kernelMatrix[i][j];
     }
 
     private void trainTaxAndDuin()
@@ -333,7 +233,7 @@ public class OneClassSvm extends Svm
             FeatureVector testFeatureVector = featureVectorList.get(0);
             featureVectorList.remove(0);
             train(featureVectorList);
-            if(predict(testFeatureVector) == NORMAL_VALUE)
+            if(predict(testFeatureVector) == NORMAL_LABEL)
                 successCount++;
 
             featureVectorList.add(testFeatureVector);
@@ -347,10 +247,10 @@ public class OneClassSvm extends Svm
     @Override
     public double leaveOneOutCrossValidation(FeatureVector[] featureVectors)
     {
-        return leaveOneOutCrossValidation(Arrays.asList(featureVectors));
+        return leaveOneOutCrossValidation(new ArrayList<FeatureVector>(Arrays.asList(featureVectors)));
     }
 
-    public void doParamsGridSearch(double[] regParams, double[][] kernelParamMatrix, boolean changeable)
+    public void doParamsGridSearch(FeatureVector[] featureVectors, double[] regParams, double[][] kernelParamMatrix, boolean changeable)
     {
         // array[0]: start, array[1]: end, array[2]: step size
         // array[x][0]: start, array[x][1]: end, array[x][2]: step size
@@ -359,7 +259,7 @@ public class OneClassSvm extends Svm
         for(int i=0;i<orgKernelParams.length;i++)
             orgKernelParams[i] = this.kernelParams[i];
 
-        double bestAccuracy = Double.MIN_VALUE;
+        double bestAccuracy = -Double.MAX_VALUE;
         double bestRegParam = Double.NaN;
         double[] bestKernelParams = new double[kernelParamMatrix.length];
         for(double c=regParams[0];c<=regParams[1];c+=regParams[2])
@@ -369,7 +269,7 @@ public class OneClassSvm extends Svm
                 {
                     this.regParam = c;
                     this.kernelParams[0] = a;
-                    double accuracy = leaveOneOutCrossValidation(this.trainedFeatureVectors);
+                    double accuracy = leaveOneOutCrossValidation(featureVectors);
                     if(accuracy > bestAccuracy)
                     {
                         bestAccuracy = accuracy;
@@ -384,7 +284,7 @@ public class OneClassSvm extends Svm
                         this.regParam = c;
                         this.kernelParams[0] = a;
                         this.kernelParams[1] = b;
-                        double accuracy = leaveOneOutCrossValidation(this.trainedFeatureVectors);
+                        double accuracy = leaveOneOutCrossValidation(featureVectors);
                         if(accuracy > bestAccuracy)
                         {
                             bestAccuracy = accuracy;
@@ -501,7 +401,8 @@ public class OneClassSvm extends Svm
                 bw.write("radius" + DELIMITER + this.radius);
 
             bw.newLine();
-            bw.write("alpha");
+            bw.write("alpha vector");
+            bw.newLine();
             for(int i=0;i<this.alphas.length;i++)
                 bw.write((i == 0)? String.valueOf(this.alphas[i]) : DELIMITER + this.alphas[i]);
 

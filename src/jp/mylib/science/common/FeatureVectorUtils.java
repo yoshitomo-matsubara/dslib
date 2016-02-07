@@ -36,7 +36,7 @@ public class FeatureVectorUtils
         {
             BufferedReader br = new BufferedReader(new FileReader(inputFile));
             String line;
-            while((line = br.readLine()) != null)
+            while((line = br.readLine()) != null && line.length() > 0)
             {
                 if(line.startsWith(COMMENT_OUT))
                     continue;
