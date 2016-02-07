@@ -8,30 +8,14 @@ import java.util.List;
 
 public class FeatureVectorUtils
 {
-    public static void getEachIndexMinMax(FeatureVector[] featureVectors, double[] minValues, double[] maxValues)
-    {
-        minValues = new double[featureVectors[0].getSize()];
-        maxValues = new double[minValues.length];
-        for(int i=0;i<minValues.length;i++)
-        {
-            minValues[i] = featureVectors[0].getValue(i);
-            maxValues[i] = featureVectors[0].getValue(i);
-        }
-
-        for(int i=1;i<featureVectors.length;i++)
-            for(int j=0;j<minValues.length;j++)
-            {
-                double value = featureVectors[i].getValue(j);
-                if(value < minValues[j])
-                    minValues[j] = value;
-                if(value > maxValues[j])
-                    maxValues[j] = value;
-            }
-    }
+    public static final String COMMENT_OUT = "//";
+    public static final String NORMALIZATION = "Normalization";
+    public static final String STANDARDIZATION = "Standardization";
 
     /*
     [id] is optional
     Delimiter: [\t], [,] or [ ]
+    Comment out: [//]
     Dense vector type
     [id]\t[label]\t[value1]\t[value2]...
     [id]\t[label]\t[value1]\t[value2]...
@@ -44,7 +28,7 @@ public class FeatureVectorUtils
     [id]\t[label]\t[index2:value2]\t[index5:value5]\t[index7:value7]...
     ...
      */
-    public static List<FeatureVector> generateFeatureVectors(String inputFilePath)
+    public static FeatureVector[] generateFeatureVectors(String inputFilePath)
     {
         File inputFile = new File(inputFilePath);
         List<FeatureVector> vecList = new ArrayList<FeatureVector>();
@@ -54,6 +38,9 @@ public class FeatureVectorUtils
             String line;
             while((line = br.readLine()) != null)
             {
+                if(line.startsWith(COMMENT_OUT))
+                    continue;
+
                 String[] params = line.split("\t");
                 if(params.length < 3)
                 {
@@ -92,6 +79,76 @@ public class FeatureVectorUtils
             System.err.println("Invalid file for FeatureVector class : " + inputFile.getName());
         }
 
-        return vecList;
+        return vecList.toArray(new FeatureVector[vecList.size()]);
+    }
+
+    public static void getEachIndexMinMax(FeatureVector[] featureVectors, double[] minValues, double[] maxValues)
+    {
+        for(int i=0;i<minValues.length;i++)
+        {
+            minValues[i] = featureVectors[0].getValue(i);
+            maxValues[i] = featureVectors[0].getValue(i);
+        }
+
+        for(int i=1;i<featureVectors.length;i++)
+            for(int j=0;j<minValues.length;j++)
+            {
+                double value = featureVectors[i].getValue(j);
+                if(value < minValues[j])
+                    minValues[j] = value;
+                if(value > maxValues[j])
+                    maxValues[j] = value;
+            }
+    }
+
+    public static void getEachIndexAveSd(FeatureVector[] featureVectors, double[] aveValues, double[] sdValues)
+    {
+        double[][] matrix = new double[aveValues.length][featureVectors.length];
+        for(int i=0;i<featureVectors.length;i++)
+            for(int j=0;j<aveValues.length;j++)
+                matrix[j][i] = featureVectors[i].getValue(j);
+
+        for(int i=0;i<featureVectors.length;i++)
+        {
+            aveValues[i] = BasicMath.calcAverage(matrix[i]);
+            sdValues[i] = BasicMath.calcStandardDeviation(matrix[i], aveValues[i]);
+        }
+    }
+
+    public static void scaling(FeatureVector[] featureVectors, String type)
+    {
+        if(type.equals(NORMALIZATION))
+        {
+            double[] minValues = new double[featureVectors[0].getSize()];
+            double[] maxValues = new double[featureVectors[0].getSize()];
+            getEachIndexMinMax(featureVectors, minValues, maxValues);
+            for(int i=0;i<featureVectors.length;i++)
+            {
+                double[] scaledValues = new double[featureVectors[i].getSize()];
+                for(int j=0;j<scaledValues.length;j++)
+                    scaledValues[j] = DataProcessor.normalize(featureVectors[i].getValue(j), minValues[j], maxValues[j]);
+
+                featureVectors[i].replaceAllValues(scaledValues);
+            }
+        }
+        else if(type.equals(STANDARDIZATION))
+        {
+            double[] aveValues = new double[featureVectors[0].getSize()];
+            double[] sdValues = new double[featureVectors[0].getSize()];
+            getEachIndexAveSd(featureVectors, aveValues, sdValues);
+            for(int i=0;i<featureVectors.length;i++)
+            {
+                double[] scaledValues = new double[featureVectors[i].getSize()];
+                for(int j=0;j<scaledValues.length;j++)
+                    scaledValues[j] = DataProcessor.standardize(featureVectors[i].getValue(j), aveValues[j], sdValues[j]);
+
+                featureVectors[i].replaceAllValues(scaledValues);
+            }
+        }
+    }
+
+    public static void scaling(FeatureVector[] featureVectors)
+    {
+        scaling(featureVectors, NORMALIZATION);
     }
 }

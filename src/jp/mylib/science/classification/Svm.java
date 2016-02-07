@@ -34,9 +34,9 @@ public abstract class Svm
     public abstract void train(FeatureVector[] featureVectors);
     public abstract void train(List<FeatureVector> featureVectorList);
     public abstract int predict(FeatureVector featureVector);
+    public abstract void reset();
     public abstract double leaveOneOutCrossValidation(List<FeatureVector> featureVectorList);
     public abstract double leaveOneOutCrossValidation(FeatureVector[] featureVectors);
-    public abstract void reset();
     public abstract void inputModel(String modelFilePath);
     public abstract void outputModel(String modelFilePath);
 }

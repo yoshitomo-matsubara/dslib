@@ -39,6 +39,21 @@ public class OneClassSvm extends Svm
             this.kernelParams[i] = kernelParams[i];
     }
 
+    public OneClassSvm(String id, double regParam, double tolerance, String method, String kernelType, double kernelParam)
+    {
+        this(id, regParam, tolerance, method, kernelType, new double[]{kernelParam});
+    }
+
+    public OneClassSvm(String id, double regParam, double tolerance, String method)
+    {
+        this(id, regParam, tolerance, method, BasicAlgebra.GAUSSIAN_KERNEL_TYPE, new double[]{BasicAlgebra.DEFAULT_GAUSSIAN_KERNEL_SD});
+    }
+
+    public OneClassSvm(String id, double regParam)
+    {
+        this(id, regParam, DEFAULT_TOLERANCE, SCHOLKOPF, BasicAlgebra.GAUSSIAN_KERNEL_TYPE, new double[]{BasicAlgebra.DEFAULT_GAUSSIAN_KERNEL_SD});
+    }
+
     public OneClassSvm(String modelFilePath)
     {
         this.rho = Double.NaN;
@@ -288,32 +303,6 @@ public class OneClassSvm extends Svm
     }
 
     @Override
-    public double leaveOneOutCrossValidation(List<FeatureVector> featureVectorList)
-    {
-        int successCount = 0;
-        int size = featureVectorList.size();
-        for(int i=0;i<size;i++)
-        {
-            FeatureVector testFeatureVector = featureVectorList.get(0);
-            featureVectorList.remove(0);
-            train(featureVectorList);
-            if(predict(testFeatureVector) == NORMAL_VALUE)
-                successCount++;
-
-            featureVectorList.add(testFeatureVector);
-        }
-
-        // return accuracy
-        return (double)successCount / (double)size;
-    }
-
-    @Override
-    public double leaveOneOutCrossValidation(FeatureVector[] featureVectors)
-    {
-        return leaveOneOutCrossValidation(Arrays.asList(featureVectors));
-    }
-
-    @Override
     public void reset()
     {
         this.alphas = new double[0];
@@ -332,6 +321,33 @@ public class OneClassSvm extends Svm
         this.kernelParams = new double[kernelParams.length];
         for(int i=0;i<kernelParams.length;i++)
             this.kernelParams[i] = kernelParams[i];
+    }
+
+    @Override
+    public double leaveOneOutCrossValidation(List<FeatureVector> featureVectorList)
+    {
+        int successCount = 0;
+        int size = featureVectorList.size();
+        for(int i=0;i<size;i++)
+        {
+            FeatureVector testFeatureVector = featureVectorList.get(0);
+            featureVectorList.remove(0);
+            train(featureVectorList);
+            if(predict(testFeatureVector) == NORMAL_VALUE)
+                successCount++;
+
+            featureVectorList.add(testFeatureVector);
+            reset(this.regParam, this.tolerance, this.kernelType, this.kernelParams);
+        }
+
+        // return accuracy
+        return (double)successCount / (double)size;
+    }
+
+    @Override
+    public double leaveOneOutCrossValidation(FeatureVector[] featureVectors)
+    {
+        return leaveOneOutCrossValidation(Arrays.asList(featureVectors));
     }
 
     public void doParamsGridSearch(double[] regParams, double[][] kernelParamMatrix, boolean changeable)
