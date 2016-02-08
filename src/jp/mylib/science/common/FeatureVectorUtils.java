@@ -115,13 +115,13 @@ public class FeatureVectorUtils
         }
     }
 
-    public static void scaling(FeatureVector[] featureVectors, String type)
+    public static void scaling(FeatureVector[] featureVectors, FeatureVector[] baseVectors, String type)
     {
         if(type.equals(NORMALIZATION))
         {
             double[] minValues = new double[featureVectors[0].getSize()];
             double[] maxValues = new double[featureVectors[0].getSize()];
-            getEachIndexMinMax(featureVectors, minValues, maxValues);
+            getEachIndexMinMax(baseVectors, minValues, maxValues);
             for(int i=0;i<featureVectors.length;i++)
             {
                 double[] scaledValues = new double[featureVectors[i].getSize()];
@@ -135,7 +135,7 @@ public class FeatureVectorUtils
         {
             double[] aveValues = new double[featureVectors[0].getSize()];
             double[] sdValues = new double[featureVectors[0].getSize()];
-            getEachIndexAveSd(featureVectors, aveValues, sdValues);
+            getEachIndexAveSd(baseVectors, aveValues, sdValues);
             for(int i=0;i<featureVectors.length;i++)
             {
                 double[] scaledValues = new double[featureVectors[i].getSize()];
@@ -145,6 +145,11 @@ public class FeatureVectorUtils
                 featureVectors[i].replaceAllValues(scaledValues);
             }
         }
+    }
+
+    public static void scaling(FeatureVector[] featureVectors, String type)
+    {
+        scaling(featureVectors, featureVectors, type);
     }
 
     public static void scaling(FeatureVector[] featureVectors)
