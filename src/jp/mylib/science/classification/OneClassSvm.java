@@ -89,7 +89,7 @@ public class OneClassSvm extends Svm
         double c =  1.0d / ((double)trainingSize * this.regParam);
         while(true)
         {
-            int[] workingSet = SvmUtils.workingSetSelection3(c, WSS3_TAU, this.tolerance, labels, this.kernelMatrix, this.alphas, gradients);
+            int[] workingSet = SvmUtil.workingSetSelection3(c, WSS3_TAU, this.tolerance, labels, this.kernelMatrix, this.alphas, gradients);
             int i = workingSet[0];
             int j = workingSet[1];
             if(j == -1)
@@ -141,9 +141,10 @@ public class OneClassSvm extends Svm
         this.rho = intercept / (double)indexList.size();
     }
 
+    // D. Tax and R. Duin "Support Vector Data Description"
+    //      and R. Fan et. al. "Working Set Selection Using Second Order Information for Training Support Vector Machines"
     private void trainTaxAndDuin()
     {
-
     }
 
     @Override

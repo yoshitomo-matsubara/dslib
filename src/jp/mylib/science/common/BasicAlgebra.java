@@ -43,6 +43,24 @@ public class BasicAlgebra
         return ip;
     }
 
+    public static double[][] calcMatrixProduct(double[][] matrixX, double[][] matrixY)
+    {
+        double[][] matrix = new double[matrixX.length][matrixY[0].length];
+        for(int i=0;i<matrix.length;i++)
+            for(int j=0;j<matrix[0].length;j++)
+                matrix[i][j] = 0.0d;
+
+        if(matrixY.length != matrixX[0].length)
+            return matrix;
+
+        for(int i=0;i<matrix.length;i++)
+            for(int j=0;j<matrix[0].length;j++)
+                for(int k=0;k<matrix[0].length;k++)
+                    matrix[i][j] += matrixX[i][k] * matrixY[k][j];
+
+        return matrix;
+    }
+
     public static double calcCosineDistance(double[] arrayX, double[] arrayY)
     {
         return 1.0d - calcInnerProduct(arrayX, arrayY) / (calcMagnitude(arrayX) * calcMagnitude(arrayY));

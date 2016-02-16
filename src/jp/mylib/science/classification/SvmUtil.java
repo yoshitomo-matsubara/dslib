@@ -1,6 +1,6 @@
 package jp.mylib.science.classification;
 
-public class SvmUtils
+public class SvmUtil
 {
     public static int POSITIVE_LABEL = +1;
     public static int NEGATIVE_LABEL = -1;
