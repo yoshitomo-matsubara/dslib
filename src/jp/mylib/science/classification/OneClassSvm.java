@@ -20,10 +20,10 @@ public class OneClassSvm extends Svm
     public static final int NORMAL_LABEL = 1;
     public static final int OUTLIER_LABEL = -1;
     private String id, method, kernelType;
-    private double regParam, tolerance, rho, radius;
-    private double[] kernelParams, alphas;
+    private double regParam, tolerance, rho, squaredRadius;
+    private double[] kernelParams, alphas, gradients;
     private double[][] kernelMatrix;
-    private FeatureVector[] trainedFeatureVectors;
+    private FeatureVector[] trainingFeatureVectors;
 
     public OneClassSvm(String id, double regParam, double tolerance, String method, String kernelType, double[] kernelParams)
     {
@@ -33,7 +33,7 @@ public class OneClassSvm extends Svm
         this.kernelType = kernelType;
         this.tolerance = tolerance;
         this.rho = Double.NaN;
-        this.radius = Double.NaN;
+        this.squaredRadius = Double.NaN;
         this.kernelParams = new double[kernelParams.length];
         for(int i=0;i<this.kernelParams.length;i++)
             this.kernelParams[i] = kernelParams[i];
@@ -57,20 +57,18 @@ public class OneClassSvm extends Svm
     public OneClassSvm(String modelFilePath)
     {
         this.rho = Double.NaN;
-        this.radius = Double.NaN;
+        this.squaredRadius = Double.NaN;
         inputModel(modelFilePath);
     }
 
-    // B. Scholkopf et. al. "Support Vector Method for Novelty Detection"
-    //      and R. Fan et. al. "Working Set Selection Using Second Order Information for Training Support Vector Machines"
-    private void trainScholkopf()
+    // R. Fan et. al. "Working Set Selection Using Second Order Information for Training Support Vector Machines"
+    private void solveQpUsingWss3(int trainingSize, double c)
     {
-        int trainingSize = this.trainedFeatureVectors.length;
-        this.kernelMatrix = calcKernelMatrix(this.trainedFeatureVectors, this.kernelType, this.kernelParams);
+        this.kernelMatrix = calcKernelMatrix(this.trainingFeatureVectors, this.kernelType, this.kernelParams);
         // initialize an alpha array (Working Set Selection 3)
         this.alphas = new double[trainingSize];
         int[] labels = new int[trainingSize];
-        double[] gradients = new double[trainingSize];
+        this.gradients = new double[trainingSize];
         double vl = this.regParam * (double)trainingSize;
         for(int i=0;i<this.alphas.length;i++)
         {
@@ -86,7 +84,6 @@ public class OneClassSvm extends Svm
         for(int i=0;i<gradients.length;i++)
             gradients[i] = BasicAlgebra.calcInnerProduct(this.kernelMatrix[i], this.alphas);
 
-        double c =  1.0d / ((double)trainingSize * this.regParam);
         while(true)
         {
             int[] workingSet = SvmUtil.workingSetSelection3(c, WSS3_TAU, this.tolerance, labels, this.kernelMatrix, this.alphas, gradients);
@@ -127,7 +124,14 @@ public class OneClassSvm extends Svm
             for(int t = 0;t<gradients.length;t++)
                 gradients[t] += this.kernelMatrix[t][i] * deltaAlphaI + this.kernelMatrix[t][j] * deltaAlphaJ;
         }
+    }
 
+    // B. Scholkopf et. al. "Support Vector Method for Novelty Detection"
+    private void trainScholkopf()
+    {
+        int trainingSize = this.trainingFeatureVectors.length;
+        double c = 1.0d / ((double)trainingSize * this.regParam);
+        solveQpUsingWss3(trainingSize, c);
         // calculate rho
         ArrayList<Integer> indexList = new ArrayList<Integer>();
         for(int i=0;i<this.alphas.length;i++)
@@ -136,23 +140,44 @@ public class OneClassSvm extends Svm
 
         double intercept = 0.0d;
         for(int index : indexList)
-            intercept += gradients[index];
+            intercept += this.gradients[index];
 
         this.rho = intercept / (double)indexList.size();
     }
 
     // D. Tax and R. Duin "Support Vector Data Description"
-    //      and R. Fan et. al. "Working Set Selection Using Second Order Information for Training Support Vector Machines"
     private void trainTaxAndDuin()
     {
+        int trainingSize = this.trainingFeatureVectors.length;
+        double c = this.regParam;
+        solveQpUsingWss3(trainingSize, c);
+        // calculate radius
+        ArrayList<Integer> indexList = new ArrayList<Integer>();
+        for(int i=0;i<this.alphas.length;i++)
+            if(0.0d < this.alphas[i] && this.alphas[i] < c)
+                indexList.add(i);
+
+        // here, adopt the first index(k) satisfying 0 < a[k] < c
+        int k = indexList.get(0);
+        double r2 = this.kernelMatrix[k][k];
+        double sum = 0.0d;
+        for(int i=0;i<this.alphas.length;i++)
+            sum += this.alphas[i] * this.kernelMatrix[i][k];
+
+        r2 -= 2.0d * sum;
+        for(int i=0;i<this.alphas.length;i++)
+            for(int j=0;j<this.alphas.length;j++)
+                r2 += this.alphas[i] * this.alphas[j] * this.kernelMatrix[i][j];
+
+        this.squaredRadius = r2;
     }
 
     @Override
     public void train(FeatureVector[] featureVectors)
     {
-        this.trainedFeatureVectors = new FeatureVector[featureVectors.length];
+        this.trainingFeatureVectors = new FeatureVector[featureVectors.length];
         for(int i=0;i<featureVectors.length;i++)
-            this.trainedFeatureVectors[i] = featureVectors[i];
+            this.trainingFeatureVectors[i] = featureVectors[i];
 
         if(this.method.equals(SCHOLKOPF))
             trainScholkopf();
@@ -173,17 +198,27 @@ public class OneClassSvm extends Svm
         double score = 0.0d;
         if(this.kernelParams.length > 1)
             for(int i=0;i<this.alphas.length;i++)
-                score += this.alphas[i] * BasicAlgebra.kernelFunction(this.trainedFeatureVectors[i].getAllValues(), featureVector.getAllValues(), this.kernelType, this.kernelParams);
+                score += this.alphas[i] * BasicAlgebra.kernelFunction(this.trainingFeatureVectors[i].getAllValues(), featureVector.getAllValues(), this.kernelType, this.kernelParams);
         else
             for(int i=0;i<this.alphas.length;i++)
-                score += this.alphas[i] * BasicAlgebra.kernelFunction(this.trainedFeatureVectors[i].getAllValues(), featureVector.getAllValues(), this.kernelType);
+                score += this.alphas[i] * BasicAlgebra.kernelFunction(this.trainingFeatureVectors[i].getAllValues(), featureVector.getAllValues(), this.kernelType);
 
-        return BasicMath.sgn(score - this.rho);
+        return (BasicMath.sgn(score - this.rho) == OUTLIER_LABEL)? OUTLIER_LABEL : NORMAL_LABEL;
     }
 
     private int predictTaxAndDuin(FeatureVector featureVector)
     {
-        return 1;
+        double score = BasicAlgebra.calcInnerProduct(featureVector.getAllValues(), featureVector.getAllValues());
+        double sum = 0.0d;
+        for(int i=0;i<this.alphas.length;i++)
+            sum += this.alphas[i] * BasicAlgebra.kernelFunction(featureVector.getAllValues(), this.trainingFeatureVectors[i].getAllValues(), this.kernelType, this.kernelParams);
+
+        score -= 2.0d * sum;
+        for(int i=0;i<this.alphas.length;i++)
+            for(int j=0;j<this.alphas.length;j++)
+                score += this.alphas[i] * this.alphas[j] * this.kernelMatrix[i][j];
+
+        return (score > this.squaredRadius)? OUTLIER_LABEL : NORMAL_LABEL;
     }
 
     private int predictWithoutTraining()
@@ -197,7 +232,7 @@ public class OneClassSvm extends Svm
     {
         if(this.method.equals(SCHOLKOPF) && this.rho != Double.NaN)
                 return predictScholkopf(featureVector);
-        else if(this.method.equals(TAX_AND_DUIN) && this.radius == Double.NaN)
+        else if(this.method.equals(TAX_AND_DUIN) && this.squaredRadius == Double.NaN)
                 return predictTaxAndDuin(featureVector);
 
         return predictWithoutTraining();
@@ -209,8 +244,8 @@ public class OneClassSvm extends Svm
         this.alphas = new double[0];
         this.kernelMatrix = new double[0][0];
         this.rho = Double.NaN;
-        this.radius = Double.NaN;
-        this.trainedFeatureVectors = new FeatureVector[0];
+        this.squaredRadius = Double.NaN;
+        this.trainingFeatureVectors = new FeatureVector[0];
     }
 
     public void reset(double regParam, double tolerance, String kernelType, double[] kernelParams)
@@ -339,7 +374,7 @@ public class OneClassSvm extends Svm
             if(this.method.equals(SCHOLKOPF))
                 this.rho = Double.parseDouble(br.readLine().split(DELIMITER)[1]);
             else if(this.method.equals(TAX_AND_DUIN))
-                this.radius = Double.parseDouble(br.readLine().split(DELIMITER)[1]);
+                this.squaredRadius = Double.parseDouble(br.readLine().split(DELIMITER)[1]);
 
             if(!br.readLine().equals("alpha"))
             {
@@ -399,7 +434,7 @@ public class OneClassSvm extends Svm
             if(this.method.equals(SCHOLKOPF))
                 bw.write("rho" + DELIMITER + this.rho);
             else if(this.method.equals(TAX_AND_DUIN))
-                bw.write("radius" + DELIMITER + this.radius);
+                bw.write("squared radius" + DELIMITER + this.squaredRadius);
 
             bw.newLine();
             bw.write("alpha vector");
