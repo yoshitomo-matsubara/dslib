@@ -81,19 +81,19 @@ public class OneClassSvm extends Svm
                 this.alphas[i] = 0.0d;
         }
 
-        for(int i=0;i<gradients.length;i++)
-            gradients[i] = BasicAlgebra.calcInnerProduct(this.kernelMatrix[i], this.alphas);
+        for(int i=0;i<this.gradients.length;i++)
+            this.gradients[i] = BasicAlgebra.calcInnerProduct(this.kernelMatrix[i], this.alphas);
 
         while(true)
         {
-            int[] workingSet = SvmUtil.workingSetSelection3(c, WSS3_TAU, this.tolerance, labels, this.kernelMatrix, this.alphas, gradients);
+            int[] workingSet = SvmUtil.workingSetSelection3(c, WSS3_TAU, this.tolerance, labels, this.kernelMatrix, this.alphas, this.gradients);
             int i = workingSet[0];
             int j = workingSet[1];
             if(j == -1)
                 break;
 
             double a = this.kernelMatrix[i][i] + this.kernelMatrix[j][j] - 2.0d * (double)(labels[i] * labels[j]) * this.kernelMatrix[i][j];
-            double b = -(double)labels[i] * gradients[i] + (double)labels[j] * gradients[j];
+            double b = -(double)labels[i] * this.gradients[i] + (double)labels[j] * this.gradients[j];
             if(a <= 0.0d)
                 a = WSS3_TAU;
 
@@ -121,8 +121,8 @@ public class OneClassSvm extends Svm
             // update gradients
             double deltaAlphaI = this.alphas[i] - oldAlphaI;
             double deltaAlphaJ = this.alphas[j] - oldAlphaJ;
-            for(int t = 0;t<gradients.length;t++)
-                gradients[t] += this.kernelMatrix[t][i] * deltaAlphaI + this.kernelMatrix[t][j] * deltaAlphaJ;
+            for(int t = 0;t<this.gradients.length;t++)
+                this.gradients[t] += this.kernelMatrix[t][i] * deltaAlphaI + this.kernelMatrix[t][j] * deltaAlphaJ;
         }
     }
 
