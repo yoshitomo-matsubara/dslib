@@ -16,6 +16,7 @@ public class BasicAlgebra
         double magnitude = 0.0d;
         for(double value : array)
             magnitude += Math.pow(value, 2.0d);
+
         return Math.sqrt(magnitude);
     }
 
@@ -24,6 +25,7 @@ public class BasicAlgebra
         double magnitude = 0.0d;
         for(double value : list)
             magnitude += Math.pow(value, 2.0d);
+
         return Math.sqrt(magnitude);
     }
 
@@ -32,6 +34,7 @@ public class BasicAlgebra
         double ip = 0.0d;
         for(int i=0;i<arrayX.length;i++)
             ip += arrayX[i] * arrayY[i];
+
         return ip;
     }
 
@@ -40,7 +43,73 @@ public class BasicAlgebra
         double ip = 0.0d;
         for(int i=0;i<listX.size();i++)
             ip += listX.get(i) * listY.get(i);
+
         return ip;
+    }
+
+    public static double[] getRow(double[][] matrix, int row)
+    {
+        double[] array = new double[matrix.length];
+        for(int i=0;i<matrix.length;i++)
+            array[i] = matrix[i][row];
+
+        return array;
+    }
+
+    public static double[][] transposeMatrix(double[][] matrix)
+    {
+        double[][] matrixT = new double[matrix[0].length][matrix.length];
+        for(int i=0;i<matrix.length;i++)
+            for(int j=0;j<matrix[0].length;j++)
+                matrixT[j][i] = matrix[i][j];
+
+        return matrixT;
+    }
+
+    public static double[][] generateIdentityMatrix(int size)
+    {
+        double[][] matrix = new double[size][size];
+        for(int i=0;i<matrix.length;i++)
+            for(int j=0;j<matrix[0].length;j++)
+                matrix[i][j] = (i == j)? 1.0d : 0.0d;
+
+        return matrix;
+    }
+
+    public static double calcDeterminant(double[][] matrix)
+    {
+        double det = 0.0d;
+        if(matrix.length != matrix[0].length)
+            return det;
+
+        double prod = 1.0d;
+        if(matrix.length == 2 && matrix[0].length == 2)
+        {
+            det = matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0];
+            return det;
+        }
+
+        for(int i=0;i<matrix.length;i++)
+        {
+            // calc det in a recursive way calcDeterminant(part of "matrix");
+        }
+
+        return det;
+    }
+
+    public static double[][] calcInverseMatrix(double[][] matrix)
+    {
+        double[][] invMatrix = new double[matrix.length][matrix.length];
+        if(matrix.length != matrix[0].length)
+            return invMatrix;
+
+        double det = calcDeterminant(matrix);
+        if(det == 0.0d)
+            return invMatrix;
+
+        // adjugate matrix
+
+        return invMatrix;
     }
 
     public static double[][] calcMatrixProduct(double[][] matrixX, double[][] matrixY)
@@ -76,6 +145,7 @@ public class BasicAlgebra
         double sum = 0.0d;
         for(int i=0;i<arrayX.length;i++)
             sum += Math.pow(arrayX[i] - arrayY[i], 2.0d);
+
         return Math.sqrt(sum);
     }
 
@@ -84,6 +154,7 @@ public class BasicAlgebra
         double sum = 0.0d;
         for(int i=0;i<listX.size();i++)
             sum += Math.pow(listX.get(i) - listY.get(i), 2.0d);
+
         return Math.sqrt(sum);
     }
 
@@ -92,6 +163,7 @@ public class BasicAlgebra
         double sum = 0.0d;
         for(int i=0;i<arrayX.length;i++)
             sum += Math.abs(arrayX[i] - arrayY[i]);
+
         return sum;
     }
 
@@ -100,6 +172,7 @@ public class BasicAlgebra
         double sum = 0.0d;
         for(int i=0;i<listX.size();i++)
             sum += Math.abs(listX.get(i) - listY.get(i));
+
         return sum;
     }
 
@@ -109,6 +182,7 @@ public class BasicAlgebra
         double sd = BasicMath.calcStandardDeviation(arrayX, BasicMath.calcAverage(arrayX));
         for(int i=0;i<arrayX.length;i++)
             sum += Math.pow((arrayX[i] - arrayY[i]) / sd, 2.0d);
+
         return Math.sqrt(sum);
     }
 
@@ -118,6 +192,7 @@ public class BasicAlgebra
         double sd = BasicMath.calcStandardDeviation(listX, BasicMath.calcAverage(listX));
         for(int i=0;i<listX.size();i++)
             sum += Math.pow((listX.get(i) - listY.get(i)) / sd, 2.0d);
+
         return Math.sqrt(sum);
     }
 
@@ -147,6 +222,7 @@ public class BasicAlgebra
             return polynomialKernel(arrayX, arrayY);
         else if(kernelType.equals(GAUSSIAN_KERNEL_TYPE))
             return gaussianKernel(arrayX, arrayY);
+
         return Double.NaN;
     }
 
@@ -156,6 +232,7 @@ public class BasicAlgebra
             return polynomialKernel(arrayX, arrayY, kernelParams[0], kernelParams[1]);
         else if(kernelType.equals(GAUSSIAN_KERNEL_TYPE))
             return gaussianKernel(arrayX, arrayY, kernelParams[0]);
+
         return Double.NaN;
     }
 }
