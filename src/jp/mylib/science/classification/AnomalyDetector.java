@@ -3,6 +3,8 @@ package jp.mylib.science.classification;
 import jp.mylib.science.common.BasicAlgebra;
 import jp.mylib.science.common.BasicMath;
 import jp.mylib.science.common.FeatureVector;
+import jp.mylib.science.statistics.DensityEstimator;
+import jp.mylib.science.statistics.Kernel;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -10,20 +12,6 @@ import java.util.HashMap;
 
 public class AnomalyDetector
 {
-    private double calcReachabilityDistance(double[] arrayX, double[] arrayY, double kthDist)
-    {
-        double dist = BasicAlgebra.calcEuclideanDistance(arrayX, arrayY);
-        return (dist > kthDist)? dist : kthDist;
-    }
-
-    private double calcLocalReachabilityDensity(FeatureVector targetVector, FeatureVector[] featureVectors, int k, double kthDist)
-    {
-        double lrd = 0.0d;
-        for(int i=0;i<k;i++)
-            lrd += calcReachabilityDistance(targetVector.getAllValues(), featureVectors[i].getAllValues(), kthDist);
-        return 1.0d / lrd / (double)k;
-    }
-
     private double calcLocalOutlierFactor(FeatureVector targetVector, FeatureVector[] featureVectors, int k)
     {
         ArrayList<Double> distList = new ArrayList<Double>();
@@ -53,9 +41,9 @@ public class AnomalyDetector
 
         double lof = 0.0d;
         for(int i=0;i<k;i++)
-            lof += calcLocalReachabilityDensity(featureVectors[i], featureVectors, k, kthDist);
+            lof += DensityEstimator.calcLocalReachabilityDensity(featureVectors[i], featureVectors, k, kthDist);
 
-        return lof / (double)k / calcLocalReachabilityDensity(targetVector, featureVectors, k, kthDist);
+        return lof / (double)k / DensityEstimator.calcLocalReachabilityDensity(targetVector, featureVectors, k, kthDist);
     }
 
     public double[] getLocalOutlierFactors(FeatureVector[] featureVectors, int k)
@@ -86,15 +74,13 @@ public class AnomalyDetector
     }
 
     // Kullback-Leibler
-    public int[] getOutlierIndicesBasedOnKl(FeatureVector[] trainingFeatureVectors, FeatureVector[] testFeatureVectors, String kernelType, double[] kernelParams, double epsilon, double tolerance, double threshold)
+    public int[] getOutlierIndicesBasedOnKl(FeatureVector[] trainingFeatureVectors, FeatureVector[] testFeatureVectors, Kernel kernel, double epsilon, double tolerance, double threshold)
     {
         ArrayList<Integer> outlierIdxList = new ArrayList<Integer>();
-        double[] alphas = new double[trainingFeatureVectors.length];
-        double diff = Double.MAX_VALUE;
-        while(diff > tolerance)
-        {
-
-        }
+        double[] densityRatios = DensityEstimator.estimateDensityRatioKullbackLeibler(trainingFeatureVectors, testFeatureVectors, kernel, epsilon, tolerance);
+        for(int i=0;i<densityRatios.length;i++)
+            if(densityRatios[i] < threshold)
+                outlierIdxList.add(i);
 
         int[] indices = new int[outlierIdxList.size()];
         for(int i=0;i<outlierIdxList.size();i++)

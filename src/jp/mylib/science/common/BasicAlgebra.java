@@ -22,6 +22,33 @@ public class BasicAlgebra
         return Math.sqrt(magnitude);
     }
 
+    public static double[] scalarMultiple(double scalar, double[] array)
+    {
+        double[] arrayX = new double[array.length];
+        for(int i=0;i<arrayX.length;i++)
+            arrayX[i] = scalar * array[i];
+
+        return arrayX;
+    }
+
+    public static double[] calcVectorSum(double[] arrayX, double[] arrayY)
+    {
+        double[] array = new double[arrayX.length];
+        for(int i=0;i<array.length;i++)
+            array[i] = arrayX[i] + arrayY[i];
+
+        return array;
+    }
+
+    public static double[] calcVectorDiff(double[] arrayX, double[] arrayY)
+    {
+        double[] array = new double[arrayX.length];
+        for(int i=0;i<array.length;i++)
+            array[i] = arrayX[i] - arrayY[i];
+
+        return array;
+    }
+
     public static double calcInnerProduct(double[] arrayX, double[] arrayY)
     {
         double ip = 0.0d;
@@ -168,15 +195,51 @@ public class BasicAlgebra
         return invMatrix;
     }
 
+    public static double[][] scalarMultiple(double scalar, double[][] matrix)
+    {
+        double[][] matrixX = new double[matrix.length][matrix[0].length];
+        for(int i=0;i<matrixX.length;i++)
+            for(int j=0;j<matrixX[0].length;j++)
+                matrixX[i][j] = scalar * matrix[i][j];
+
+        return matrixX;
+    }
+
+    public static double[][] calcMatrixSum(double[][] matrixX, double[][] matrixY)
+    {
+        double[][] matrix = new double[matrixX.length][matrixX[0].length];
+        if(matrixX.length != matrixY.length || matrixX[0].length != matrixY[0].length)
+            return matrix;
+
+        for(int i=0;i<matrix.length;i++)
+            for(int j=0;j<matrix[0].length;j++)
+                matrix[i][j] = matrixX[i][j] + matrixY[i][j];
+
+        return matrix;
+    }
+
+    public static double[][] calcMatrixDiff(double[][] matrixX, double[][] matrixY)
+    {
+        double[][] matrix = new double[matrixX.length][matrixX[0].length];
+        if(matrixX.length != matrixY.length || matrixX[0].length != matrixY[0].length)
+            return matrix;
+
+        for(int i=0;i<matrix.length;i++)
+            for(int j=0;j<matrix[0].length;j++)
+                matrix[i][j] = matrixX[i][j] - matrixY[i][j];
+
+        return matrix;
+    }
+
     public static double[][] calcMatrixProduct(double[][] matrixX, double[][] matrixY)
     {
         double[][] matrix = new double[matrixX.length][matrixY[0].length];
+        if(matrixY.length != matrixX[0].length)
+            return matrix;
+
         for(int i=0;i<matrix.length;i++)
             for(int j=0;j<matrix[0].length;j++)
                 matrix[i][j] = 0.0d;
-
-        if(matrixY.length != matrixX[0].length)
-            return matrix;
 
         for(int i=0;i<matrix.length;i++)
             for(int j=0;j<matrix[0].length;j++)
@@ -184,6 +247,30 @@ public class BasicAlgebra
                     matrix[i][j] += matrixX[i][k] * matrixY[k][j];
 
         return matrix;
+    }
+
+    public static double[] calcMatrixProduct(double[] arrayX, double[][] matrixY)
+    {
+        return calcMatrixProduct(new double[][]{arrayX}, matrixY)[0];
+    }
+
+    public static double[] calcMatrixProduct(double[][] matrixX, double[] arrayY)
+    {
+        double[][] matrixY = new double[arrayY.length][0];
+        for(int i=0;i<arrayY.length;i++)
+            matrixY[i][0] = arrayY[i];
+
+        double[][] matrix = calcMatrixProduct(matrixX, matrixY);
+        double[] array = new double[arrayY.length];
+        for(int i=0;i<array.length;i++)
+            array[i] = matrix[i][0];
+
+        return array;
+    }
+
+    public static double calcMatrixProduct(double[] arrayX, double[] arrayY)
+    {
+        return calcInnerProduct(arrayX, arrayY);
     }
 
     public static double calcCosineDistance(double[] arrayX, double[] arrayY)

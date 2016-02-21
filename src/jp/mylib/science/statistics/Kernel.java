@@ -69,19 +69,9 @@ public class Kernel
         return Math.pow(BasicAlgebra.calcInnerProduct(arrayX, arrayY) + c, p);
     }
 
-    public double polynomialKernel(double[] arrayX, double[] arrayY)
-    {
-        return polynomialKernel(arrayX, arrayY, DEFAULT_POLYNOMIAL_KERNEL_CONSTANT, DEFAULT_POLYNOMIAL_KERNEL_POWER);
-    }
-
     public double gaussianKernel(double[] arrayX, double[] arrayY, double sd)
     {
         return Math.exp(-BasicAlgebra.calcEuclideanDistance(arrayX, arrayY) / (2.0d * Math.pow(sd, 2.0d)));
-    }
-
-    public double gaussianKernel(double[] arrayX, double[] arrayY)
-    {
-        return gaussianKernel(arrayX, arrayY, DEFAULT_GAUSSIAN_KERNEL_SD);
     }
 
     public double kernelFunction(double[] arrayX, double[] arrayY)
@@ -105,6 +95,7 @@ public class Kernel
                 kernelMatrix[i][j] = kernelFunction(featureVectors[i].getAllValues(), featureVectors[j].getAllValues());
                 kernelMatrix[j][i] = kernelMatrix[i][j];
             }
+
         return kernelMatrix;
     }
 }
