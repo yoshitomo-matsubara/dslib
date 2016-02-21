@@ -3,6 +3,7 @@ package jp.mylib.science.classification;
 import jp.mylib.science.common.BasicAlgebra;
 import jp.mylib.science.common.BasicMath;
 import jp.mylib.science.common.FeatureVector;
+import jp.mylib.science.statistics.Kernel;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -19,24 +20,27 @@ public class OneClassSvm extends Svm
     public static final double DEFAULT_TOLERANCE = 1.0e-3d;
     public static final int NORMAL_LABEL = 1;
     public static final int OUTLIER_LABEL = -1;
-    private String id, method, kernelType;
+    private String id, method;
     private double regParam, tolerance, rho, squaredRadius;
-    private double[] kernelParams, alphas, gradients;
+    private Kernel kernel;
+    private double[] alphas, gradients;
     private double[][] kernelMatrix;
     private FeatureVector[] trainingFeatureVectors;
 
-    public OneClassSvm(String id, double regParam, double tolerance, String method, String kernelType, double[] kernelParams)
+    public OneClassSvm(String id, double regParam, double tolerance, String method, Kernel kernel)
     {
         this.id = id;
         this.regParam = regParam;
         this.method = method;
-        this.kernelType = kernelType;
         this.tolerance = tolerance;
+        this.kernel = kernel;
         this.rho = Double.NaN;
         this.squaredRadius = Double.NaN;
-        this.kernelParams = new double[kernelParams.length];
-        for(int i=0;i<this.kernelParams.length;i++)
-            this.kernelParams[i] = kernelParams[i];
+    }
+
+    public OneClassSvm(String id, double regParam, double tolerance, String method, String kernelType, double[] kernelParams)
+    {
+        this(id, regParam, tolerance, method, new Kernel(kernelType, kernelParams));
     }
 
     public OneClassSvm(String id, double regParam, double tolerance, String method, String kernelType, double kernelParam)
@@ -46,12 +50,12 @@ public class OneClassSvm extends Svm
 
     public OneClassSvm(String id, double regParam, double tolerance, String method)
     {
-        this(id, regParam, tolerance, method, BasicAlgebra.GAUSSIAN_KERNEL_TYPE, new double[]{BasicAlgebra.DEFAULT_GAUSSIAN_KERNEL_SD});
+        this(id, regParam, tolerance, method, Kernel.GAUSSIAN_KERNEL_TYPE, new double[]{Kernel.DEFAULT_GAUSSIAN_KERNEL_SD});
     }
 
     public OneClassSvm(String id, double regParam)
     {
-        this(id, regParam, DEFAULT_TOLERANCE, SCHOLKOPF, BasicAlgebra.GAUSSIAN_KERNEL_TYPE, new double[]{BasicAlgebra.DEFAULT_GAUSSIAN_KERNEL_SD});
+        this(id, regParam, DEFAULT_TOLERANCE, SCHOLKOPF, Kernel.GAUSSIAN_KERNEL_TYPE, new double[]{Kernel.DEFAULT_GAUSSIAN_KERNEL_SD});
     }
 
     public OneClassSvm(String modelFilePath)
@@ -64,7 +68,7 @@ public class OneClassSvm extends Svm
     // R. Fan et. al. "Working Set Selection Using Second Order Information for Training Support Vector Machines"
     private void solveQpUsingWss3(int trainingSize, double c)
     {
-        this.kernelMatrix = calcKernelMatrix(this.trainingFeatureVectors, this.kernelType, this.kernelParams);
+        this.kernelMatrix = this.kernel.calcKernelMatrix(this.trainingFeatureVectors);
         // initialize an alpha array (Working Set Selection 3)
         this.alphas = new double[trainingSize];
         int[] labels = new int[trainingSize];
@@ -196,12 +200,12 @@ public class OneClassSvm extends Svm
     private int predictScholkopf(FeatureVector featureVector)
     {
         double score = 0.0d;
-        if(this.kernelParams.length > 1)
+        if(this.kernel.getParams().length > 1)
             for(int i=0;i<this.alphas.length;i++)
-                score += this.alphas[i] * BasicAlgebra.kernelFunction(this.trainingFeatureVectors[i].getAllValues(), featureVector.getAllValues(), this.kernelType, this.kernelParams);
+                score += this.alphas[i] * this.kernel.kernelFunction(this.trainingFeatureVectors[i].getAllValues(), featureVector.getAllValues());
         else
             for(int i=0;i<this.alphas.length;i++)
-                score += this.alphas[i] * BasicAlgebra.kernelFunction(this.trainingFeatureVectors[i].getAllValues(), featureVector.getAllValues(), this.kernelType);
+                score += this.alphas[i] * this.kernel.kernelFunction(this.trainingFeatureVectors[i].getAllValues(), featureVector.getAllValues());
 
         return (BasicMath.sgn(score - this.rho) == OUTLIER_LABEL)? OUTLIER_LABEL : NORMAL_LABEL;
     }
@@ -211,7 +215,7 @@ public class OneClassSvm extends Svm
         double score = BasicAlgebra.calcInnerProduct(featureVector.getAllValues(), featureVector.getAllValues());
         double sum = 0.0d;
         for(int i=0;i<this.alphas.length;i++)
-            sum += this.alphas[i] * BasicAlgebra.kernelFunction(featureVector.getAllValues(), this.trainingFeatureVectors[i].getAllValues(), this.kernelType, this.kernelParams);
+            sum += this.alphas[i] * this.kernel.kernelFunction(featureVector.getAllValues(), this.trainingFeatureVectors[i].getAllValues());
 
         score -= 2.0d * sum;
         for(int i=0;i<this.alphas.length;i++)
@@ -248,15 +252,17 @@ public class OneClassSvm extends Svm
         this.trainingFeatureVectors = new FeatureVector[0];
     }
 
-    public void reset(double regParam, double tolerance, String kernelType, double[] kernelParams)
+    public void reset(double regParam, double tolerance, Kernel kernel)
     {
         reset();
         this.regParam = regParam;
         this.tolerance = tolerance;
-        this.kernelType = kernelType;
-        this.kernelParams = new double[kernelParams.length];
-        for(int i=0;i<kernelParams.length;i++)
-            this.kernelParams[i] = kernelParams[i];
+        this.kernel = kernel;
+    }
+
+    public void reset(double regParam, double tolerance, String kernelType, double[] kernelParams)
+    {
+        reset(regParam, tolerance, new Kernel(kernelType, kernelParams));
     }
 
     @Override
@@ -273,7 +279,7 @@ public class OneClassSvm extends Svm
                 successCount++;
 
             featureVectorList.add(testFeatureVector);
-            reset(this.regParam, this.tolerance, this.kernelType, this.kernelParams);
+            reset(this.regParam, this.tolerance, this.kernel);
         }
 
         // return accuracy
@@ -291,9 +297,10 @@ public class OneClassSvm extends Svm
         // array[0]: start, array[1]: end, array[2]: step size
         // array[x][0]: start, array[x][1]: end, array[x][2]: step size
         double orgRegParam = this.regParam;
-        double[] orgKernelParams = new double[this.kernelParams.length];
+        double[] params = this.kernel.getParams();
+        double[] orgKernelParams = new double[params.length];
         for(int i=0;i<orgKernelParams.length;i++)
-            orgKernelParams[i] = this.kernelParams[i];
+            orgKernelParams[i] = params[i];
 
         double bestAccuracy = -Double.MAX_VALUE;
         double bestRegParam = Double.NaN;
@@ -304,7 +311,7 @@ public class OneClassSvm extends Svm
                 for(double a=kernelParamMatrix[0][0];a<=kernelParamMatrix[0][1];a+=kernelParamMatrix[0][2])
                 {
                     this.regParam = c;
-                    this.kernelParams[0] = a;
+                    this.kernel.setParam(a, 0);
                     double accuracy = leaveOneOutCrossValidation(featureVectors);
                     if(accuracy > bestAccuracy)
                     {
@@ -318,8 +325,8 @@ public class OneClassSvm extends Svm
                     for(double b=kernelParamMatrix[1][0];b<=kernelParamMatrix[1][1];b+=kernelParamMatrix[1][2])
                     {
                         this.regParam = c;
-                        this.kernelParams[0] = a;
-                        this.kernelParams[1] = b;
+                        this.kernel.setParam(a, 0);
+                        this.kernel.setParam(b, 1);
                         double accuracy = leaveOneOutCrossValidation(featureVectors);
                         if(accuracy > bestAccuracy)
                         {
@@ -332,14 +339,13 @@ public class OneClassSvm extends Svm
         }
 
         System.out.println("Best accuracy = " + (bestAccuracy * 100.0d));
-        System.out.println("Kernel type = " + this.kernelType);
+        System.out.println("Kernel type = " + this.kernel.getType());
         System.out.println("regParam = " + bestRegParam);
         for(int i=0;i<bestKernelParams.length;i++)
             System.out.println("param" + (i + 1) + " = " + bestKernelParams[i]);
 
         this.regParam = (changeable)? bestRegParam : orgRegParam;
-        for(int i=0;i<orgKernelParams.length;i++)
-            this.kernelParams[i] = (changeable)? bestKernelParams[i] : orgKernelParams[i];
+        this.kernel.setParams((changeable)? bestKernelParams : orgKernelParams);
     }
 
     @Override
@@ -367,10 +373,11 @@ public class OneClassSvm extends Svm
             this.regParam = Double.parseDouble(br.readLine().split(DELIMITER)[1]);
             this.tolerance = Double.parseDouble(br.readLine().split(DELIMITER)[1]);
             String[] params = br.readLine().split(DELIMITER);
-            this.kernelType = params[1];
+            double[] array = new double[params.length - 1];
             for(int i=2;i<params.length;i++)
-                this.kernelParams[i - 1] = Double.parseDouble(params[i]);
+                array[i - 2] = Double.parseDouble(params[i]);
 
+            this.kernel = new Kernel(params[1], array);
             if(this.method.equals(SCHOLKOPF))
                 this.rho = Double.parseDouble(br.readLine().split(DELIMITER)[1]);
             else if(this.method.equals(TAX_AND_DUIN))
@@ -426,9 +433,10 @@ public class OneClassSvm extends Svm
             bw.newLine();
             bw.write("tolerance" + DELIMITER + this.tolerance);
             bw.newLine();
-            bw.write("kernel" + DELIMITER + this.kernelType);
-            for(int i=0;i<this.kernelParams.length;i++)
-                bw.write("" + DELIMITER + this.kernelParams[i]);
+            bw.write("kernel" + DELIMITER + this.kernel.getType());
+            double[] params = this.kernel.getParams();
+            for(int i=0;i<params.length;i++)
+                bw.write("" + DELIMITER + params[i]);
 
             bw.newLine();
             if(this.method.equals(SCHOLKOPF))

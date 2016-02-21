@@ -67,7 +67,8 @@ public class AnomalyDetector
         return lofs;
     }
 
-    public int[] getOutlierIndicesBasedOnLOF(FeatureVector[] featureVectors, int k, double threshold)
+    // Local Outlier Factor
+    public int[] getOutlierIndicesBasedOnLof(FeatureVector[] featureVectors, int k, double threshold)
     {
         ArrayList<Integer> outlierIdxList = new ArrayList<Integer>();
         for(int i=0;i<featureVectors.length;i++)
@@ -75,6 +76,24 @@ public class AnomalyDetector
             double lof = calcLocalOutlierFactor(featureVectors[i], featureVectors, k);
             if(lof >= threshold)
                 outlierIdxList.add(i);
+        }
+
+        int[] indices = new int[outlierIdxList.size()];
+        for(int i=0;i<outlierIdxList.size();i++)
+            indices[i] = outlierIdxList.get(i);
+
+        return indices;
+    }
+
+    // Kullback-Leibler
+    public int[] getOutlierIndicesBasedOnKl(FeatureVector[] trainingFeatureVectors, FeatureVector[] testFeatureVectors, String kernelType, double[] kernelParams, double epsilon, double tolerance, double threshold)
+    {
+        ArrayList<Integer> outlierIdxList = new ArrayList<Integer>();
+        double[] alphas = new double[trainingFeatureVectors.length];
+        double diff = Double.MAX_VALUE;
+        while(diff > tolerance)
+        {
+
         }
 
         int[] indices = new int[outlierIdxList.size()];

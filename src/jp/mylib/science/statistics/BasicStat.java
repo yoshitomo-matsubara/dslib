@@ -1,8 +1,10 @@
-package jp.mylib.science.common;
+package jp.mylib.science.statistics;
+
+import jp.mylib.science.common.BasicMath;
 
 import java.util.ArrayList;
 
-public class Statistics
+public class BasicStat
 {
     public double calcCoefficientCorrelation(double[] arrayX, double[] arrayY)
     {
