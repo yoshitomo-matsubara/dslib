@@ -6,7 +6,7 @@ import java.util.ArrayList;
 
 public class BasicStat
 {
-    public double calcCoefficientCorrelation(double[] arrayX, double[] arrayY)
+    public double calcCorrel(double[] arrayX, double[] arrayY)
     {
         double aveX = BasicMath.calcAverage(arrayX);
         double aveY = BasicMath.calcAverage(arrayY);
@@ -27,32 +27,32 @@ public class BasicStat
         return numerator / (denomitorX * denomitorY);
     }
 
-    public double calcProbabilityWithNormalDistribution(double x, double ave, double sd)
+    public double normDistPdf(double x, double ave, double sd)
     {
         return 1.0d / (Math.sqrt(2.0d * Math.PI) * sd) * Math.exp(- Math.pow((x - ave) / sd, 2.0d) / 2.0d);
     }
 
-    public double calcProbabilityWithNormalDistribution(double x, double[] samples)
-    {
-        double ave = BasicMath.calcAverage(samples);
-        double sd = BasicMath.calcStandardDeviation(samples, ave);
-        return 1.0d / (Math.sqrt(2.0d * Math.PI) * sd) * Math.exp(- Math.pow((x - ave) / sd, 2.0d) / 2.0d);
-    }
-
-    public double calcProbabilityWithNormalDistribution(double x, ArrayList<Double> samples)
+    public double normDistPdf(double x, double[] samples)
     {
         double ave = BasicMath.calcAverage(samples);
         double sd = BasicMath.calcStandardDeviation(samples, ave);
         return 1.0d / (Math.sqrt(2.0d * Math.PI) * sd) * Math.exp(- Math.pow((x - ave) / sd, 2.0d) / 2.0d);
     }
 
-    public double calcProbabilityWithStandardNormalDistribution(double x, double ave, double sd)
+    public double normDistPdf(double x, ArrayList<Double> samples)
+    {
+        double ave = BasicMath.calcAverage(samples);
+        double sd = BasicMath.calcStandardDeviation(samples, ave);
+        return 1.0d / (Math.sqrt(2.0d * Math.PI) * sd) * Math.exp(- Math.pow((x - ave) / sd, 2.0d) / 2.0d);
+    }
+
+    public double stdNormDistPdf(double x, double ave, double sd)
     {
         double z = (x - ave) / sd;
         return 1.0d / Math.sqrt(2.0d * Math.PI) * Math.exp(- Math.pow(z, 2.0d) / 2.0d);
     }
 
-    public double calcProbabilityWithStandardNormalDistribution(double x, double[] array)
+    public double stdNormDistPdf(double x, double[] array)
     {
         double ave = BasicMath.calcAverage(array);
         double sd = BasicMath.calcStandardDeviation(array, ave);
@@ -60,7 +60,7 @@ public class BasicStat
         return 1.0d / Math.sqrt(2.0d * Math.PI) * Math.exp(- Math.pow(z, 2.0d) / 2.0d);
     }
 
-    public double calcProbabilityWithStandardNormalDistribution(double x, ArrayList<Double> list)
+    public double stdNormDistPdf(double x, ArrayList<Double> list)
     {
         double ave = BasicMath.calcAverage(list);
         double sd = BasicMath.calcStandardDeviation(list, ave);

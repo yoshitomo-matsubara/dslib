@@ -1,7 +1,6 @@
 package jp.mylib.science.classification;
 
 import jp.mylib.science.common.BasicAlgebra;
-import jp.mylib.science.common.BasicMath;
 import jp.mylib.science.common.FeatureVector;
 import jp.mylib.science.statistics.DensityEstimator;
 import jp.mylib.science.statistics.Kernel;
@@ -73,7 +72,7 @@ public class AnomalyDetector
         return indices;
     }
 
-    // Kullback-Leibler
+    // Kullback Leibler
     public int[] getOutlierIndicesBasedOnKl(FeatureVector[] trainingFeatureVectors, FeatureVector[] testFeatureVectors, Kernel kernel, double epsilon, double tolerance, double threshold)
     {
         ArrayList<Integer> outlierIdxList = new ArrayList<Integer>();

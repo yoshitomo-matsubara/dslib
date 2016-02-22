@@ -8,6 +8,7 @@ public class Kernel
     public static final String LINEAR_KERNEL_TYPE = "LINEAR KERNEL";
     public static final String POLYNOMIAL_KERNEL_TYPE = "POLYNOMIAL KERNEL";
     public static final String GAUSSIAN_KERNEL_TYPE = "GAUSSIAN KERNEL";
+    public static final String SIGMOID_KERNEL_TYPE = "SIGMOID KERNEL";
     public static final double DEFAULT_POLYNOMIAL_KERNEL_CONSTANT = 1.0d;
     public static final double DEFAULT_POLYNOMIAL_KERNEL_POWER = 1.0d;
     public static final double DEFAULT_GAUSSIAN_KERNEL_SD = 0.3d;
@@ -74,6 +75,11 @@ public class Kernel
         return Math.exp(-BasicAlgebra.calcEuclideanDistance(arrayX, arrayY) / (2.0d * Math.pow(sd, 2.0d)));
     }
 
+    public double sigmoidKernel(double[] arrayX, double[] arrayY, double c, double theta)
+    {
+        return Math.tanh(c * BasicAlgebra.calcInnerProduct(arrayX, arrayY) + theta);
+    }
+
     public double kernelFunction(double[] arrayX, double[] arrayY)
     {
         if(this.type.equals(LINEAR_KERNEL_TYPE))
@@ -82,6 +88,8 @@ public class Kernel
             return polynomialKernel(arrayX, arrayY, this.params[0], this.params[1]);
         else if(this.type.equals(GAUSSIAN_KERNEL_TYPE))
             return gaussianKernel(arrayX, arrayY, this.params[0]);
+        else if(this.type.equals(SIGMOID_KERNEL_TYPE))
+            return sigmoidKernel(arrayX, arrayY, this.params[0], this.params[1]);
 
         return Double.NaN;
     }

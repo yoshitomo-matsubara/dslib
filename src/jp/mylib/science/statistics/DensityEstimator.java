@@ -16,6 +16,7 @@ public class DensityEstimator
         double lrd = 0.0d;
         for(int i=0;i<k;i++)
             lrd += calcReachabilityDistance(targetVector.getAllValues(), featureVectors[i].getAllValues(), kthDist);
+
         return 1.0d / lrd / (double)k;
     }
 

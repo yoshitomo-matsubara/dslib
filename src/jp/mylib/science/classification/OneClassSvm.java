@@ -48,16 +48,6 @@ public class OneClassSvm extends Svm
         this(id, regParam, tolerance, method, kernelType, new double[]{kernelParam});
     }
 
-    public OneClassSvm(String id, double regParam, double tolerance, String method)
-    {
-        this(id, regParam, tolerance, method, Kernel.GAUSSIAN_KERNEL_TYPE, new double[]{Kernel.DEFAULT_GAUSSIAN_KERNEL_SD});
-    }
-
-    public OneClassSvm(String id, double regParam)
-    {
-        this(id, regParam, DEFAULT_TOLERANCE, SCHOLKOPF, Kernel.GAUSSIAN_KERNEL_TYPE, new double[]{Kernel.DEFAULT_GAUSSIAN_KERNEL_SD});
-    }
-
     public OneClassSvm(String modelFilePath)
     {
         this.rho = Double.NaN;
