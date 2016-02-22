@@ -17,7 +17,6 @@ public class OneClassSvm extends Svm
     public static final String TAX_AND_DUIN = "Tax and Duin";
     public static final String DELIMITER = "\t";
     public static final double WSS3_TAU = 1.0e-12d;
-    public static final double DEFAULT_TOLERANCE = 1.0e-3d;
     public static final int NORMAL_LABEL = 1;
     public static final int OUTLIER_LABEL = -1;
     private String id, method;

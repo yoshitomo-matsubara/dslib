@@ -9,9 +9,6 @@ public class Kernel
     public static final String POLYNOMIAL_KERNEL_TYPE = "POLYNOMIAL KERNEL";
     public static final String GAUSSIAN_KERNEL_TYPE = "GAUSSIAN KERNEL";
     public static final String SIGMOID_KERNEL_TYPE = "SIGMOID KERNEL";
-    public static final double DEFAULT_POLYNOMIAL_KERNEL_CONSTANT = 1.0d;
-    public static final double DEFAULT_POLYNOMIAL_KERNEL_POWER = 1.0d;
-    public static final double DEFAULT_GAUSSIAN_KERNEL_SD = 0.3d;
     private String type;
     private double[] params;
 
