@@ -3,6 +3,7 @@ package jp.mylib.science.clustering;
 import jp.mylib.science.common.BasicAlgebra;
 import jp.mylib.science.common.FeatureVector;
 import jp.mylib.science.common.FeatureVectorUtils;
+import jp.mylib.science.statistics.Kernel;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -92,9 +93,9 @@ public class Cluster
         kMeans(clusterSize, featureVectors, DEFAULT_KMEANS_TOLERANCE);
     }
 
-    public static void kernelKMeans(int clusterSize, FeatureVector[] featureVectors, String kernelType, int tolerance, double[] params)
+    public static void kernelKMeans(int clusterSize, FeatureVector[] featureVectors, Kernel kernel, int tolerance)
     {
-        if(kernelType.equals(BasicAlgebra.LINEAR_KERNEL_TYPE))
+        if(kernel.getType().equals(Kernel.LINEAR_KERNEL_TYPE))
             kMeans(clusterSize, featureVectors, tolerance);
         else
         {
@@ -129,42 +130,17 @@ public class Cluster
                         double dist = 0.0d;
                         ArrayList<Integer> indexList = labelMap.get(j);
                         double sum = 0.0d;
-                        for(int k=0;k<indexList.size();k++)
-                        {
-                            // depend on a kernel type
-                            if(kernelType.equals(BasicAlgebra.POLYNOMIAL_KERNEL_TYPE))
-                                sum += (params.length >= 2)? BasicAlgebra.polynomialKernel(featureVectors[indexList.get(k)].getAllValues(), featureVectors[i].getAllValues(), params[0], params[1])
-                                    : BasicAlgebra.polynomialKernel(featureVectors[indexList.get(k)].getAllValues(), featureVectors[i].getAllValues());
-                            else if(kernelType.equals(BasicAlgebra.GAUSSIAN_KERNEL_TYPE))
-                                sum += (params.length >= 1)? BasicAlgebra.gaussianKernel(featureVectors[indexList.get(k)].getAllValues(), featureVectors[i].getAllValues(), params[0])
-                                        : BasicAlgebra.gaussianKernel(featureVectors[indexList.get(k)].getAllValues(), featureVectors[i].getAllValues());
-                            else
-                            {
-                                System.err.println("Invalid Kernel Type");
-                                return;
-                            }
-                        }
+                        int indexSize = indexList.size();
+                        for(int k=0;k<indexSize;k++)
+                            sum += kernel.kernelFunction(featureVectors[indexList.get(k)].getAllValues(), featureVectors[i].getAllValues());
 
-                        dist = -sum * 2.0d / (double)indexList.size();
+                        dist = -sum * 2.0d / (double)indexSize;
                         if(commonDists[j] == Double.MIN_VALUE)
                         {
                             sum = 0.0d;
-                            for(int k=0;k<indexList.size();k++)
-                                for(int l=k;l<indexList.size();l++)
-                                {
-                                    // depend on a kernel type
-                                    if(kernelType.equals(BasicAlgebra.POLYNOMIAL_KERNEL_TYPE))
-                                        sum += (params.length >= 2)? BasicAlgebra.polynomialKernel(featureVectors[indexList.get(k)].getAllValues(), featureVectors[indexList.get(l)].getAllValues(), params[0], params[1])
-                                                : BasicAlgebra.polynomialKernel(featureVectors[indexList.get(k)].getAllValues(), featureVectors[indexList.get(l)].getAllValues());
-                                    else if(kernelType.equals(BasicAlgebra.GAUSSIAN_KERNEL_TYPE))
-                                        sum += (params.length >= 2)? BasicAlgebra.gaussianKernel(featureVectors[indexList.get(k)].getAllValues(), featureVectors[indexList.get(l)].getAllValues(), params[0])
-                                                : BasicAlgebra.gaussianKernel(featureVectors[indexList.get(k)].getAllValues(), featureVectors[indexList.get(l)].getAllValues());
-                                    else
-                                    {
-                                        System.err.println("Invalid Kernel Type");
-                                        return;
-                                    }
-                                }
+                            for(int k=0;k<indexSize;k++)
+                                for(int l=k;l<indexSize;l++)
+                                        sum += kernel.kernelFunction(featureVectors[indexList.get(k)].getAllValues(), featureVectors[indexList.get(l)].getAllValues());
                         }
                         else
                             dist += commonDists[j] * 2.0d / Math.pow((double)indexList.size(), 2.0d);
@@ -208,11 +184,8 @@ public class Cluster
         }
     }
 
-    public static void kernelKMeans(int clusterSize, FeatureVector[] featureVectors, String kernelType, double[] params)
+    public static void kernelKMeans(int clusterSize, FeatureVector[] featureVectors, Kernel kernel)
     {
-        if(kernelType.equals(BasicAlgebra.POLYNOMIAL_KERNEL_TYPE) || kernelType.equals(BasicAlgebra.GAUSSIAN_KERNEL_TYPE))
-            kernelKMeans(clusterSize, featureVectors, kernelType, DEFAULT_KMEANS_TOLERANCE_COUNT, params);
-        else
-            kMeans(clusterSize, featureVectors, DEFAULT_KMEANS_TOLERANCE);
+        kernelKMeans(clusterSize, featureVectors, kernel, DEFAULT_KMEANS_TOLERANCE_COUNT);
     }
 }
