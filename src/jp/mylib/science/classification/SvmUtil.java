@@ -1,12 +1,14 @@
 package jp.mylib.science.classification;
 
+import jp.mylib.science.common.SymmetricMatrix;
+
 public class SvmUtil
 {
     public static int POSITIVE_LABEL = +1;
     public static int NEGATIVE_LABEL = -1;
 
     // R. Fan et. al. "Working Set Selection Using Second Order Information for Training Support Vector Machines"
-    public static int[] workingSetSelection3(double c, double tau, double tolerance, int[] labels, double[][] kernelMatrix, double[] alphas, double[] gradients)
+    public static int[] workingSetSelection3(double c, double tau, double tolerance, int[] labels, SymmetricMatrix kernelMatrix, double[] alphas, double[] gradients)
     {
         // select i
         int i = -1;
@@ -36,7 +38,7 @@ public class SvmUtil
 
                 if(b > 0.0d)
                 {
-                    double a = kernelMatrix[i][i] + kernelMatrix[t][t] - 2.0d * (double)(labels[i] * labels[t]) * kernelMatrix[i][t];
+                    double a = kernelMatrix.get(i, i) + kernelMatrix.get(t, t) - 2.0d * (double)(labels[i] * labels[t]) * kernelMatrix.get(i, t);
                     if(a <= 0.0d)
                         a = tau;
 

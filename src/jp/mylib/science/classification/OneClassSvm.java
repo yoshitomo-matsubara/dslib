@@ -3,6 +3,7 @@ package jp.mylib.science.classification;
 import jp.mylib.science.common.BasicAlgebra;
 import jp.mylib.science.common.BasicMath;
 import jp.mylib.science.common.FeatureVector;
+import jp.mylib.science.common.SymmetricMatrix;
 import jp.mylib.science.statistics.Kernel;
 
 import java.io.*;
@@ -23,7 +24,7 @@ public class OneClassSvm extends Svm
     private double regParam, tolerance, rho, squaredRadius;
     private Kernel kernel;
     private double[] alphas, gradients;
-    private double[][] kernelMatrix;
+    private SymmetricMatrix kernelMatrix;
     private FeatureVector[] trainingFeatureVectors;
 
     public OneClassSvm(String id, double regParam, double tolerance, String method, Kernel kernel)
@@ -57,7 +58,7 @@ public class OneClassSvm extends Svm
     // R. Fan et. al. "Working Set Selection Using Second Order Information for Training Support Vector Machines"
     private void solveQpUsingWss3(int trainingSize, double c)
     {
-        this.kernelMatrix = this.kernel.calcKernelMatrix(this.trainingFeatureVectors);
+        this.kernelMatrix = new SymmetricMatrix(this.kernel.calcKernelMatrix(this.trainingFeatureVectors));
         // initialize an alpha array (Working Set Selection 3)
         this.alphas = new double[trainingSize];
         int[] labels = new int[trainingSize];
@@ -75,7 +76,7 @@ public class OneClassSvm extends Svm
         }
 
         for(int i=0;i<this.gradients.length;i++)
-            this.gradients[i] = BasicAlgebra.calcInnerProduct(this.kernelMatrix[i], this.alphas);
+            this.gradients[i] = BasicAlgebra.calcInnerProduct(this.kernelMatrix.getRow(i), this.alphas);
 
         while(true)
         {
@@ -85,7 +86,7 @@ public class OneClassSvm extends Svm
             if(j == -1)
                 break;
 
-            double a = this.kernelMatrix[i][i] + this.kernelMatrix[j][j] - 2.0d * (double)(labels[i] * labels[j]) * this.kernelMatrix[i][j];
+            double a = this.kernelMatrix.get(i, i) + this.kernelMatrix.get(j, j) - 2.0d * (double)(labels[i] * labels[j]) * this.kernelMatrix.get(i, j);
             double b = -(double)labels[i] * this.gradients[i] + (double)labels[j] * this.gradients[j];
             if(a <= 0.0d)
                 a = WSS3_TAU;
@@ -115,7 +116,7 @@ public class OneClassSvm extends Svm
             double deltaAlphaI = this.alphas[i] - oldAlphaI;
             double deltaAlphaJ = this.alphas[j] - oldAlphaJ;
             for(int t = 0;t<this.gradients.length;t++)
-                this.gradients[t] += this.kernelMatrix[t][i] * deltaAlphaI + this.kernelMatrix[t][j] * deltaAlphaJ;
+                this.gradients[t] += this.kernelMatrix.get(t, i) * deltaAlphaI + this.kernelMatrix.get(t, j) * deltaAlphaJ;
         }
     }
 
@@ -152,15 +153,15 @@ public class OneClassSvm extends Svm
 
         // here, adopt the first index(k) satisfying 0 < a[k] < c
         int k = indexList.get(0);
-        double r2 = this.kernelMatrix[k][k];
+        double r2 = this.kernelMatrix.get(k, k);
         double sum = 0.0d;
         for(int i=0;i<this.alphas.length;i++)
-            sum += this.alphas[i] * this.kernelMatrix[i][k];
+            sum += this.alphas[i] * this.kernelMatrix.get(i, k);
 
         r2 -= 2.0d * sum;
         for(int i=0;i<this.alphas.length;i++)
             for(int j=0;j<this.alphas.length;j++)
-                r2 += this.alphas[i] * this.alphas[j] * this.kernelMatrix[i][j];
+                r2 += this.alphas[i] * this.alphas[j] * this.kernelMatrix.get(i, j);
 
         this.squaredRadius = r2;
     }
@@ -209,7 +210,7 @@ public class OneClassSvm extends Svm
         score -= 2.0d * sum;
         for(int i=0;i<this.alphas.length;i++)
             for(int j=0;j<this.alphas.length;j++)
-                score += this.alphas[i] * this.alphas[j] * this.kernelMatrix[i][j];
+                score += this.alphas[i] * this.alphas[j] * this.kernelMatrix.get(i, j);
 
         return (score > this.squaredRadius)? OUTLIER_LABEL : NORMAL_LABEL;
     }
@@ -224,9 +225,9 @@ public class OneClassSvm extends Svm
     public int predict(FeatureVector featureVector)
     {
         if(this.method.equals(SCHOLKOPF) && this.rho != Double.NaN)
-                return predictScholkopf(featureVector);
+            return predictScholkopf(featureVector);
         else if(this.method.equals(TAX_AND_DUIN) && this.squaredRadius == Double.NaN)
-                return predictTaxAndDuin(featureVector);
+            return predictTaxAndDuin(featureVector);
 
         return predictWithoutTraining();
     }
@@ -235,7 +236,7 @@ public class OneClassSvm extends Svm
     public void reset()
     {
         this.alphas = new double[0];
-        this.kernelMatrix = new double[0][0];
+        this.kernelMatrix = new SymmetricMatrix(new double[0][0]);
         this.rho = Double.NaN;
         this.squaredRadius = Double.NaN;
         this.trainingFeatureVectors = new FeatureVector[0];
@@ -389,13 +390,15 @@ public class OneClassSvm extends Svm
                 return;
             }
 
-            this.kernelMatrix = new double[this.alphas.length][this.alphas.length];
+            double[][] matrix = new double[this.alphas.length][this.alphas.length];
             for(int i=0;i<this.alphas.length;i++)
             {
                 params = br.readLine().split(DELIMITER);
                 for(int j=0;j<params.length;j++)
-                    this.kernelMatrix[i][j] = Double.parseDouble(params[j]);
+                    matrix[i][j] = Double.parseDouble(params[j]);
             }
+
+            this.kernelMatrix = new SymmetricMatrix(matrix);
 
             br.close();
         }
@@ -442,9 +445,9 @@ public class OneClassSvm extends Svm
             bw.newLine();
             bw.write("kernel matrix");
             bw.newLine();
-            for(int i=0;i<this.kernelMatrix.length;i++)
-                for(int j=0;j<this.kernelMatrix[0].length;j++)
-                    bw.write((j == 0)? String.valueOf(this.kernelMatrix[i][j]) : "" + DELIMITER + this.kernelMatrix[i][j]);
+            for(int i=0;i<this.kernelMatrix.getRowSize();i++)
+                for(int j=0;j<this.kernelMatrix.getColumnSize();j++)
+                    bw.write((j == 0)? String.valueOf(this.kernelMatrix.get(i, j)) : "" + DELIMITER + this.kernelMatrix.get(i, j));
 
             bw.close();
         }

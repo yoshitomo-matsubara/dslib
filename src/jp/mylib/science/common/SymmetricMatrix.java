@@ -9,10 +9,10 @@ public class SymmetricMatrix
 
     public SymmetricMatrix(double[][] matrix)
     {
-        if(matrix.length != matrix[0].length)
+        this.list = new ArrayList<Double>();
+        if(matrix.length == 0 ||matrix.length != matrix[0].length)
             return;
 
-        this.list = new ArrayList<Double>();
         this.size = matrix.length;
         for(int i=0;i<matrix.length;i++)
             for(int j=i;j<matrix[0].length;j++)
