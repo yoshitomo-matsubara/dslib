@@ -22,6 +22,7 @@ public class AnomalyDetector
             distList.add(dist);
             if(!distMap.containsKey(dist))
                 distMap.put(dist, new ArrayList<Integer>());
+
             distMap.get(dist).add(i);
         }
 
@@ -36,8 +37,8 @@ public class AnomalyDetector
         FeatureVector[] topKFeatureVectors = new FeatureVector[k];
         for(int i=0;i<k;i++)
             topKFeatureVectors[i] = featureVectors[topKIndexList.get(i)];
-        double kthDist = distList.get(k - 1);
 
+        double kthDist = distList.get(k - 1);
         double lof = 0.0d;
         for(int i=0;i<k;i++)
             lof += DensityEstimator.calcLocalReachabilityDensity(featureVectors[i], featureVectors, k, kthDist);

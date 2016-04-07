@@ -15,6 +15,7 @@ public class DataProcessor
         double[] array = new double[values.length];
         for(int i=0;i<values.length;i++)
             array[i] = normalize(values[i], min, max);
+
         return array;
     }
 
@@ -23,6 +24,7 @@ public class DataProcessor
         List<Double> list = new ArrayList<Double>();
         for(int i=0;i<list.size();i++)
             list.add(normalize(valueList.get(i), min, max));
+
         return list;
     }
 
@@ -36,6 +38,7 @@ public class DataProcessor
         double[] array = new double[values.length];
         for(int i=0;i<values.length;i++)
             array[i] = standardize(values[i], min, max);
+
         return array;
     }
 
@@ -44,6 +47,7 @@ public class DataProcessor
         List<Double> list = new ArrayList<Double>();
         for(int i=0;i<list.size();i++)
             list.add(standardize(valueList.get(i), min, max));
+
         return list;
     }
 
@@ -53,6 +57,7 @@ public class DataProcessor
         double[] array = new double[values.length];
         for(int i=0;i<values.length;i++)
             array[i] = values[i] - ave;
+
         return array;
     }
 
@@ -62,6 +67,7 @@ public class DataProcessor
         List<Double> list = new ArrayList<Double>();
         for(int i=0;i<valueList.size();i++)
             list.add(valueList.get(i) - ave);
+
         return list;
     }
 }

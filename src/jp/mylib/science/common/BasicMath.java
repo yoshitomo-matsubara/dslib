@@ -8,8 +8,8 @@ public class BasicMath
     {
         if(value == 0.0d)
             return 0;
-        else
-            return (value > 0.0d)? 1 : -1;
+
+        return (value > 0.0d)? 1 : -1;
     }
 
     public static double calcAverage(double[] array)
@@ -17,6 +17,7 @@ public class BasicMath
         double sum = 0.0d;
         for(double value : array)
             sum += value;
+
         return sum / (double)array.length;
     }
 
@@ -25,6 +26,7 @@ public class BasicMath
         double sum = 0.0d;
         for(double value : list)
             sum += value;
+
         return sum / (double)list.size();
     }
 
@@ -34,6 +36,7 @@ public class BasicMath
         double sum = 0.0d;
         for(double value : array)
             sum += Math.pow(value - ave, 2.0d);
+
         return Math.sqrt(sum / (double)array.length);
     }
 
@@ -43,6 +46,7 @@ public class BasicMath
         double sum = 0.0d;
         for(double value : list)
             sum += Math.pow(value - ave, 2.0d);
+
         return Math.sqrt(sum / (double)list.size());
     }
 
@@ -51,6 +55,7 @@ public class BasicMath
         double sum = 0.0d;
         for(double value : array)
             sum += Math.pow(value - ave, 2.0d);
+
         return Math.sqrt(sum / (double)array.length);
     }
 
@@ -59,6 +64,7 @@ public class BasicMath
         double sum = 0.0d;
         for(double value : list)
             sum += Math.pow(value - ave, 2.0d);
+
         return Math.sqrt(sum / (double)list.size());
     }
 }

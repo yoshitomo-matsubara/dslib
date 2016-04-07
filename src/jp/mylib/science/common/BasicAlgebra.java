@@ -179,7 +179,6 @@ public class BasicAlgebra
             }
 
             for(int j=0;j<matrix.length;j++)
-            {
                 if(i != j)
                 {
                     buf = matrix[j][i];
@@ -189,7 +188,6 @@ public class BasicAlgebra
                         invMatrix[j][k] -= invMatrix[i][k] * buf;
                     }
                 }
-            }
         }
 
         return invMatrix;
