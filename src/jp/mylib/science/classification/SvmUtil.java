@@ -4,8 +4,10 @@ import jp.mylib.science.common.SymmetricMatrix;
 
 public class SvmUtil
 {
-    public static int POSITIVE_LABEL = +1;
-    public static int NEGATIVE_LABEL = -1;
+    public static String POSITIVE_LABEL = "1";
+    public static String NEGATIVE_LABEL = "-1";
+    public static int POSITIVE_VALUE = 1;
+    public static int NEGATIVE_VALUE = -1;
 
     // R. Fan et. al. "Working Set Selection Using Second Order Information for Training Support Vector Machines"
     public static int[] workingSetSelection3(double c, double tau, double tolerance, int[] labels, SymmetricMatrix kernelMatrix, double[] alphas, double[] gradients)
@@ -14,7 +16,7 @@ public class SvmUtil
         int i = -1;
         double gradientMax = -Double.MAX_VALUE;
         for(int t=0;t<labels.length;t++)
-            if((labels[t] == POSITIVE_LABEL && alphas[t] < c) || (labels[t] == NEGATIVE_LABEL && alphas[t] > 0))
+            if((labels[t] == POSITIVE_VALUE && alphas[t] < c) || (labels[t] == NEGATIVE_VALUE && alphas[t] > 0))
             {
                 double gradient = -(double)labels[t] * gradients[t];
                 if(gradient >= gradientMax)
@@ -29,7 +31,7 @@ public class SvmUtil
         double gradientMin = Double.MAX_VALUE;
         double valueMin = Double.MAX_VALUE;
         for(int t=0;t<labels.length;t++)
-            if((labels[t] == POSITIVE_LABEL && alphas[t] > 0) || (labels[t] == NEGATIVE_LABEL && alphas[t] < c))
+            if((labels[t] == POSITIVE_VALUE && alphas[t] > 0) || (labels[t] == NEGATIVE_VALUE && alphas[t] < c))
             {
                 double b = gradientMax + (double)labels[t] * gradients[t];
                 double gradient = -(double)labels[t] * gradients[t];
