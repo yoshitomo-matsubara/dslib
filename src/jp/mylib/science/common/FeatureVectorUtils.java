@@ -82,6 +82,30 @@ public class FeatureVectorUtils
         return vecList.toArray(new FeatureVector[vecList.size()]);
     }
 
+    public static FeatureVector[] getTargetVectors(FeatureVector[] featureVectors, String targetLabel)
+    {
+        ArrayList<FeatureVector> vectorList = new ArrayList<FeatureVector>();
+        for(FeatureVector featureVector : featureVectors)
+            if(featureVector.getLabel().equals(targetLabel))
+                vectorList.add(featureVector);
+
+        FeatureVector[] targetVectors = new FeatureVector[vectorList.size()];
+        for(int i=0;i<targetVectors.length;i++)
+            targetVectors[i] = vectorList.get(i);
+
+        return targetVectors;
+    }
+
+    public static List<FeatureVector> getTargetVectorList(List<FeatureVector> featureVectorList, String targetLabel)
+    {
+        ArrayList<FeatureVector> vectorList = new ArrayList<FeatureVector>();
+        for(FeatureVector featureVector : featureVectorList)
+            if(featureVector.getLabel().equals(targetLabel))
+                vectorList.add(featureVector);
+
+        return vectorList;
+    }
+
     public static void getEachIndexMinMax(FeatureVector[] featureVectors, double[] minValues, double[] maxValues)
     {
         for(int i=0;i<minValues.length;i++)
@@ -115,7 +139,7 @@ public class FeatureVectorUtils
         }
     }
 
-    public static void scaling(FeatureVector[] featureVectors, FeatureVector[] baseVectors, String type)
+    public static void doScaling(FeatureVector[] featureVectors, FeatureVector[] baseVectors, String type)
     {
         if(type.equals(NORMALIZATION))
         {
@@ -147,13 +171,13 @@ public class FeatureVectorUtils
         }
     }
 
-    public static void scaling(FeatureVector[] featureVectors, String type)
+    public static void doScaling(FeatureVector[] featureVectors, String type)
     {
-        scaling(featureVectors, featureVectors, type);
+        doScaling(featureVectors, featureVectors, type);
     }
 
-    public static void scaling(FeatureVector[] featureVectors)
+    public static void doScaling(FeatureVector[] featureVectors)
     {
-        scaling(featureVectors, NORMALIZATION);
+        doScaling(featureVectors, NORMALIZATION);
     }
 }
