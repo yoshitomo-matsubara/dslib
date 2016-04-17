@@ -75,6 +75,10 @@ public class OneClassSvm extends Svm
                 this.alphas[i] = 0.0d;
         }
 
+        if(this.method.equals(TAX_AND_DUIN))
+            for(int i=0;i<this.alphas.length;i++)
+                this.alphas[i] /= vl;
+
         for(int i=0;i<this.gradients.length;i++)
             this.gradients[i] = BasicAlgebra.calcInnerProduct(this.kernelMatrix.getRow(i), this.alphas);
 
@@ -124,7 +128,7 @@ public class OneClassSvm extends Svm
     private void trainScholkopf()
     {
         int trainingSize = this.trainingFeatureVectors.length;
-        double c = 1.0d / ((double)trainingSize * this.regParam);
+        double c = 1.0d;
         solveQpUsingWss3(trainingSize, c);
         // calculate rho
         ArrayList<Integer> indexList = new ArrayList<Integer>();
@@ -143,7 +147,7 @@ public class OneClassSvm extends Svm
     private void trainTaxAndDuin()
     {
         int trainingSize = this.trainingFeatureVectors.length;
-        double c = 1.0;
+        double c = this.regParam;
         solveQpUsingWss3(trainingSize, c);
         // calculate radius
         ArrayList<Integer> indexList = new ArrayList<Integer>();
@@ -224,7 +228,7 @@ public class OneClassSvm extends Svm
     {
         if(this.method.equals(SCHOLKOPF) && this.rho != Double.NaN)
             return predictScholkopf(featureVector);
-        else if(this.method.equals(TAX_AND_DUIN) && this.squaredRadius == Double.NaN)
+        else if(this.method.equals(TAX_AND_DUIN) && this.squaredRadius != Double.NaN)
             return predictTaxAndDuin(featureVector);
 
         return predictWithoutTraining();
