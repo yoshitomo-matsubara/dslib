@@ -63,12 +63,13 @@ public class OneClassSvm extends Svm
         int[] labels = new int[trainingSize];
         this.gradients = new double[trainingSize];
         double vl = this.regParam * (double)trainingSize;
+        // refer to 4.1.6 p.11
         for(int i=0;i<this.alphas.length;i++)
         {
             labels[i] = NORMAL_VALUE;
-            if(i < (int)Math.floor(vl) - 1)
-                this.alphas[i] = 1.0d / vl;
-            else if(i < (int)Math.floor(vl))
+            if(i < (int)Math.floor(vl))
+                this.alphas[i] = 1.0d;
+            else if(i < (int)Math.floor(vl) + 1)
                 this.alphas[i] = vl - Math.floor(vl);
             else
                 this.alphas[i] = 0.0d;
@@ -114,7 +115,7 @@ public class OneClassSvm extends Svm
             // update gradients
             double deltaAlphaI = this.alphas[i] - oldAlphaI;
             double deltaAlphaJ = this.alphas[j] - oldAlphaJ;
-            for(int t = 0;t<this.gradients.length;t++)
+            for(int t=0;t<this.gradients.length;t++)
                 this.gradients[t] += this.kernelMatrix.get(t, i) * deltaAlphaI + this.kernelMatrix.get(t, j) * deltaAlphaJ;
         }
     }
@@ -142,7 +143,7 @@ public class OneClassSvm extends Svm
     private void trainTaxAndDuin()
     {
         int trainingSize = this.trainingFeatureVectors.length;
-        double c = this.regParam;
+        double c = 1.0;
         solveQpUsingWss3(trainingSize, c);
         // calculate radius
         ArrayList<Integer> indexList = new ArrayList<Integer>();

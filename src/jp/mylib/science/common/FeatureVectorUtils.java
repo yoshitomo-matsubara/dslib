@@ -28,31 +28,35 @@ public class FeatureVectorUtils
     [id]\t[label]\t[index2:value2]\t[index5:value5]\t[index7:value7]...
     ...
      */
-    public static FeatureVector[] generateFeatureVectors(String inputFilePath)
+    public static FeatureVector[] generateFeatureVectors(String inputFilePath, boolean hasId)
     {
         File inputFile = new File(inputFilePath);
         List<FeatureVector> vecList = new ArrayList<FeatureVector>();
+        int startIndex = (hasId)? 2 : 1;
         try
         {
             BufferedReader br = new BufferedReader(new FileReader(inputFile));
             String line;
+            int vecCount = 0;
             while((line = br.readLine()) != null && line.length() > 0)
             {
                 if(line.startsWith(COMMENT_OUT))
                     continue;
 
                 String[] params = line.split("\t");
-                if(params.length < 3)
+                if(params.length < startIndex + 1)
                 {
                     params = line.split(",");
-                    if(params.length < 3)
+                    if(params.length < startIndex + 1)
                         params = line.split(" ");
                 }
 
-                FeatureVector featureVector = new FeatureVector(params[0], params[1], params.length - 2);
                 List<Integer> indexList = new ArrayList<Integer>();
                 List<Double> valueList = new ArrayList<Double>();
-                for(int i=2;i<params.length;i++)
+                String id = (hasId)? params[0] : String.valueOf(vecCount);
+                String label = (hasId)? params[1] : params[0];
+                FeatureVector featureVector = new FeatureVector(id, label, params.length - startIndex);
+                for(int i=startIndex;i<params.length;i++)
                 {
                     String[] keyValue = params[i].split(":");
                     if(keyValue.length == 2)
@@ -70,6 +74,7 @@ public class FeatureVectorUtils
                     featureVector.setValues(valueList);
 
                 vecList.add(featureVector);
+                vecCount++;
             }
 
             br.close();
