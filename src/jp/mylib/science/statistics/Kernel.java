@@ -7,6 +7,7 @@ public class Kernel
 {
     public static final String LINEAR_KERNEL_TYPE = "LINEAR KERNEL";
     public static final String POLYNOMIAL_KERNEL_TYPE = "POLYNOMIAL KERNEL";
+    public static final String RBF_KERNEL_TYPE = "RBF KERNEL";
     public static final String GAUSSIAN_KERNEL_TYPE = "GAUSSIAN KERNEL";
     public static final String SIGMOID_KERNEL_TYPE = "SIGMOID KERNEL";
     private String type;
@@ -67,9 +68,14 @@ public class Kernel
         return Math.pow(BasicAlgebra.calcInnerProduct(arrayX, arrayY) + c, p);
     }
 
-    public double gaussianKernel(double[] arrayX, double[] arrayY, double sd)
+    public double radialBasisFunctionKernel(double[] arrayX, double[] arrayY, double gamma)
     {
-        return Math.exp(-BasicAlgebra.calcEuclideanDistance(arrayX, arrayY) / (2.0d * Math.pow(sd, 2.0d)));
+        return Math.exp(-gamma * BasicAlgebra.calcEuclideanDistance(arrayX, arrayY));
+    }
+
+    public double gaussianKernel(double[] arrayX, double[] arrayY, double sigma)
+    {
+        return Math.exp(-Math.pow(BasicAlgebra.calcEuclideanDistance(arrayX, arrayY), 2.0d) / (2.0d * Math.pow(sigma, 2.0d)));
     }
 
     public double sigmoidKernel(double[] arrayX, double[] arrayY, double c, double theta)
@@ -83,6 +89,8 @@ public class Kernel
             return linearKernel(arrayX, arrayY);
         else if(this.type.equals(POLYNOMIAL_KERNEL_TYPE))
             return polynomialKernel(arrayX, arrayY, this.params[0], this.params[1]);
+        else if(this.type.equals(RBF_KERNEL_TYPE))
+            return radialBasisFunctionKernel(arrayX, arrayY, this.params[0]);
         else if(this.type.equals(GAUSSIAN_KERNEL_TYPE))
             return gaussianKernel(arrayX, arrayY, this.params[0]);
         else if(this.type.equals(SIGMOID_KERNEL_TYPE))
