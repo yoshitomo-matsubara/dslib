@@ -20,7 +20,7 @@ public class DensityEstimator
         return 1.0d / lrd / (double)k;
     }
 
-    public static double[] optimizeKlParams(FeatureVector[] trainingFeatureVectors, FeatureVector[] testFeatureVectors, Kernel kernel, double epsilon, double tolerance)
+    public static double[] optimizeKlParams(FeatureVector[] trainingFeatureVectors, Kernel kernel, double epsilon, double tolerance)
     {
         double[] alphas = new double[trainingFeatureVectors.length];
         double[] ones = new double[alphas.length];
@@ -61,7 +61,7 @@ public class DensityEstimator
 
     public static double[] estimateDensityRatioKullbackLeibler(FeatureVector[] trainingFeatureVectors, Kernel kernel, double epsilon, double tolerance, FeatureVector... testFeatureVectors)
     {
-        double[] alphas = optimizeKlParams(trainingFeatureVectors, testFeatureVectors, kernel, epsilon, tolerance);
+        double[] alphas = optimizeKlParams(trainingFeatureVectors, kernel, epsilon, tolerance);
         double[] densityRatios = new double[testFeatureVectors.length];
         for(int i=0;i<testFeatureVectors.length;i++)
         {
