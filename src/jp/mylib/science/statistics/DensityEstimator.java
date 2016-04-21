@@ -3,6 +3,9 @@ package jp.mylib.science.statistics;
 import jp.mylib.science.common.BasicAlgebra;
 import jp.mylib.science.common.FeatureVector;
 
+import java.util.Arrays;
+import java.util.Random;
+
 public class DensityEstimator
 {
     public static double calcReachabilityDistance(double[] arrayX, double[] arrayY, double kthDist)
@@ -24,12 +27,15 @@ public class DensityEstimator
     {
         double[] alphas = new double[trainingFeatureVectors.length];
         double[] ones = new double[alphas.length];
+        Random rand = new Random();
         for(int i=0;i<alphas.length;i++)
-            alphas[i] = ones[i] = 1.0d;
+        {
+            ones[i] = 1.0d;
+            alphas[i] = rand.nextDouble();
+        }
 
         double[][] kernelMatrix = kernel.calcKernelMatrix(trainingFeatureVectors);
         double[] kernelSumArray = new double[kernelMatrix.length];
-        double ip = BasicAlgebra.calcInnerProduct(kernelSumArray, kernelSumArray);
         for(int i=0;i<kernelMatrix.length;i++)
         {
             kernelSumArray[i] = 0.0d;
@@ -39,23 +45,25 @@ public class DensityEstimator
             kernelSumArray[i] /= (double)kernelMatrix[0].length;
         }
 
+        double ip = BasicAlgebra.calcInnerProduct(kernelSumArray, kernelSumArray);
         double diff = Double.MAX_VALUE;
         while(Math.abs(diff) > tolerance)
         {
             double magnitude = BasicAlgebra.calcMagnitude(alphas);
-            double[] arrayA = BasicAlgebra.calcVectorDiff(ones, BasicAlgebra.calcMatrixProduct(kernelMatrix, alphas));
-            arrayA = BasicAlgebra.calcMatrixProduct(BasicAlgebra.scalarMultiple(epsilon, kernelMatrix), arrayA);
-            alphas = BasicAlgebra.calcVectorSum(alphas, arrayA);
-            double ipB = BasicAlgebra.calcInnerProduct(kernelSumArray, alphas);
+            double[] array = BasicAlgebra.calcVectorDiff(ones, BasicAlgebra.calcMatrixProduct(kernelMatrix, alphas));
+            double[] arrayA = BasicAlgebra.calcMatrixProduct(BasicAlgebra.scalarMultiple(epsilon, kernelMatrix), array);
+            double[] alphasA = BasicAlgebra.calcVectorSum(alphas, arrayA);
+            double ipB = BasicAlgebra.calcInnerProduct(kernelSumArray, alphasA);
             double[] arrayB = BasicAlgebra.scalarMultiple((1.0d - ipB) / ip, kernelSumArray);
-            alphas = BasicAlgebra.calcVectorSum(alphas, arrayB);
-            for(int i=0;i<alphas.length;i++)
-                alphas[i] = (alphas[i] > 0.0d)? alphas[i] : 0.0d;
+            double[] alphasB = BasicAlgebra.calcVectorSum(alphasA, arrayB);
+            for(int i=0;i<alphasB.length;i++)
+                alphasB[i] = (alphasB[i] > 0.0d)? alphasB[i] : 0.0d;
 
-            double ipC = BasicAlgebra.calcInnerProduct(kernelSumArray, alphas);
-            alphas = BasicAlgebra.scalarMultiple(1.0d / ipC, alphas);
+            double ipC = BasicAlgebra.calcInnerProduct(kernelSumArray, alphasB);
+            alphas = BasicAlgebra.scalarMultiple(1.0d / ipC, alphasB);
             diff = magnitude - BasicAlgebra.calcMagnitude(alphas);
         }
+
         return alphas;
     }
 
