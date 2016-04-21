@@ -254,7 +254,7 @@ public class BasicAlgebra
 
     public static double[] calcMatrixProduct(double[][] matrixX, double[] arrayY)
     {
-        double[][] matrixY = new double[arrayY.length][0];
+        double[][] matrixY = new double[arrayY.length][1];
         for(int i=0;i<arrayY.length;i++)
             matrixY[i][0] = arrayY[i];
 
