@@ -59,7 +59,7 @@ public class DensityEstimator
         return alphas;
     }
 
-    public static double[] estimateDensityRatioKullbackLeibler(FeatureVector[] trainingFeatureVectors, FeatureVector[] testFeatureVectors, Kernel kernel, double epsilon, double tolerance)
+    public static double[] estimateDensityRatioKullbackLeibler(FeatureVector[] trainingFeatureVectors, Kernel kernel, double epsilon, double tolerance, FeatureVector... testFeatureVectors)
     {
         double[] alphas = optimizeKlParams(trainingFeatureVectors, testFeatureVectors, kernel, epsilon, tolerance);
         double[] densityRatios = new double[testFeatureVectors.length];

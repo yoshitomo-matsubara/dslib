@@ -77,7 +77,7 @@ public class AnomalyDetector
     public int[] getOutlierIndicesBasedOnKl(FeatureVector[] trainingFeatureVectors, FeatureVector[] testFeatureVectors, Kernel kernel, double epsilon, double tolerance, double threshold)
     {
         ArrayList<Integer> outlierIdxList = new ArrayList<Integer>();
-        double[] densityRatios = DensityEstimator.estimateDensityRatioKullbackLeibler(trainingFeatureVectors, testFeatureVectors, kernel, epsilon, tolerance);
+        double[] densityRatios = DensityEstimator.estimateDensityRatioKullbackLeibler(trainingFeatureVectors, kernel, epsilon, tolerance, testFeatureVectors);
         for(int i=0;i<densityRatios.length;i++)
             if(densityRatios[i] < threshold)
                 outlierIdxList.add(i);
