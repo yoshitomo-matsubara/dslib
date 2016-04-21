@@ -20,7 +20,7 @@ public class DensityEstimator
         return 1.0d / lrd / (double)k;
     }
 
-    public static double[] estimateDensityRatioKullbackLeibler(FeatureVector[] trainingFeatureVectors, FeatureVector[] testFeatureVectors, Kernel kernel, double epsilon, double tolerance)
+    public static double[] optimizeKlParams(FeatureVector[] trainingFeatureVectors, FeatureVector[] testFeatureVectors, Kernel kernel, double epsilon, double tolerance)
     {
         double[] alphas = new double[trainingFeatureVectors.length];
         double[] ones = new double[alphas.length];
@@ -56,7 +56,25 @@ public class DensityEstimator
             alphas = BasicAlgebra.scalarMultiple(1.0d / ipC, alphas);
             diff = magnitude - BasicAlgebra.calcMagnitude(alphas);
         }
+        return alphas;
+    }
 
+    public static double[] estimateDensityRatioKullbackLeibler(FeatureVector[] trainingFeatureVectors, FeatureVector[] testFeatureVectors, Kernel kernel, double epsilon, double tolerance)
+    {
+        double[] alphas = optimizeKlParams(trainingFeatureVectors, testFeatureVectors, kernel, epsilon, tolerance);
+        double[] densityRatios = new double[testFeatureVectors.length];
+        for(int i=0;i<testFeatureVectors.length;i++)
+        {
+            densityRatios[i] = 0.0d;
+            for(int j=0;j<trainingFeatureVectors.length;j++)
+                densityRatios[i] += alphas[j] * kernel.kernelFunction(testFeatureVectors[i].getAllValues(), trainingFeatureVectors[j].getAllValues());
+        }
+
+        return densityRatios;
+    }
+
+    public static double[] estimateDensityRatioKullbackLeibler(FeatureVector[] trainingFeatureVectors, FeatureVector[] testFeatureVectors, Kernel kernel, double[] alphas)
+    {
         double[] densityRatios = new double[testFeatureVectors.length];
         for(int i=0;i<testFeatureVectors.length;i++)
         {
