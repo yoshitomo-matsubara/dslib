@@ -13,17 +13,12 @@ public class Kernel
     private String type;
     private double[] params;
 
-    public Kernel(String type, double[] params)
+    public Kernel(String type, double... params)
     {
         this.type = type;
         this.params = new double[params.length];
         for(int i=0;i<params.length;i++)
             this.params[i] = params[i];
-    }
-
-    public Kernel(String type, double param)
-    {
-        this(type, new double[]{param});
     }
 
     public Kernel(String type)
