@@ -77,6 +77,49 @@ public class SparseFeatureVectorUtil
         return vecList.toArray(new SparseFeatureVector[vecList.size()]);
     }
 
+    public static FeatureVector[] convertToFeatureVectors(SparseFeatureVector[] vectors)
+    {
+        int maxIndex = Integer.MIN_VALUE;
+        for(int i=0;i<vectors.length;i++)
+        {
+            int[] indices = vectors[i].getAllIndices();
+            if(indices[indices.length - 1] > maxIndex)
+                maxIndex = indices[indices.length - 1];
+        }
+
+        FeatureVector[] featureVectors = new FeatureVector[vectors.length];
+        for(int i=0;i<vectors.length;i++)
+        {
+            double[] orgValues = vectors[i].getAllValues();
+            int[] orgIndices = vectors[i].getAllIndices();
+            for(int j=0;j<orgIndices.length;j++)
+                orgIndices[j]--;
+
+            double[] values = new double[maxIndex];
+            for(int j=0;j<orgIndices[0];j++)
+                values[j] = 0.0d;
+
+            int nextIndex = orgIndices[0];
+            for(int j=0;j<orgIndices.length;j++)
+            {
+                if(orgIndices[j] > nextIndex)
+                    for(int k=nextIndex;k<orgIndices[j];k++)
+                        values[k] = 0.0d;
+
+                values[orgIndices[j]] = orgValues[j];
+                nextIndex = orgIndices[j] + 1;
+            }
+
+            for(int j=orgIndices[orgIndices.length - 1];j<maxIndex;j++)
+                values[j] = 0.0d;
+
+            featureVectors[i] = new FeatureVector(vectors[i].getId(), vectors[i].getLabel(), maxIndex);
+            featureVectors[i].setValues(values);
+        }
+
+        return featureVectors;
+    }
+
     public static SparseFeatureVector[] getTargetVectors(SparseFeatureVector[] SparseFeatureVectors, String targetLabel)
     {
         ArrayList<SparseFeatureVector> vectorList = new ArrayList<SparseFeatureVector>();

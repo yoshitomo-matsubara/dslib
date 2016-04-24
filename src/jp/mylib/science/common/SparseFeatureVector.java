@@ -84,9 +84,19 @@ public class SparseFeatureVector
         return this.values[index];
     }
 
+    public double getIndex(int index)
+    {
+        return this.indices[index];
+    }
+
     public double[] getAllValues()
     {
         return this.values;
+    }
+
+    public int[] getAllIndices()
+    {
+        return this.indices;
     }
 
     public int getSize()
