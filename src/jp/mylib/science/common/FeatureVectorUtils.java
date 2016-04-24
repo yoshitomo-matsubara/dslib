@@ -21,12 +21,6 @@ public class FeatureVectorUtils
     [id]\t[label]\t[value1]\t[value2]...
     [id]\t[label]\t[value1]\t[value2]...
     ...
-            or
-    Sparse vector type
-    [id]\t[label]\t[index1:value1]\t[index2:value2]\t[index3:value3]...
-    [id]\t[label]\t[index3:value3]\t[index4:value4]\t[index7:value7]...
-    [id]\t[label]\t[index2:value2]\t[index5:value5]\t[index7:value7]...
-    ...
      */
     public static FeatureVector[] generateFeatureVectors(String inputFilePath, boolean hasId)
     {
@@ -68,11 +62,7 @@ public class FeatureVectorUtils
                         valueList.add(Double.parseDouble(params[i]));
                 }
 
-                if(indexList.size() == valueList.size())
-                    featureVector.setValues(valueList, indexList);
-                else
-                    featureVector.setValues(valueList);
-
+                featureVector.setValues(valueList);
                 vecList.add(featureVector);
                 vecCount++;
             }
