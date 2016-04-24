@@ -6,7 +6,7 @@ import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FeatureVectorUtils
+public class FeatureVectorUtil
 {
     public static final String COMMENT_OUT = "//";
     public static final String NORMALIZATION = "Normalization";

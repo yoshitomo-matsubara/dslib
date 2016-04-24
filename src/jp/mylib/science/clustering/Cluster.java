@@ -2,7 +2,7 @@ package jp.mylib.science.clustering;
 
 import jp.mylib.science.common.BasicAlgebra;
 import jp.mylib.science.common.FeatureVector;
-import jp.mylib.science.common.FeatureVectorUtils;
+import jp.mylib.science.common.FeatureVectorUtil;
 import jp.mylib.science.statistics.Kernel;
 
 import java.util.ArrayList;
@@ -19,7 +19,7 @@ public class Cluster
         double[][] centers = new double[clusterSize][featureVectors[0].getSize()];
         double[] minValues = new double[centers.length];
         double[] maxValues = new double[centers.length];
-        FeatureVectorUtils.getEachIndexMinMax(featureVectors, minValues, maxValues);
+        FeatureVectorUtil.getEachIndexMinMax(featureVectors, minValues, maxValues);
 
         // init weighted centers
         for(int i=0;i<centers.length;i++)

@@ -6,7 +6,7 @@ import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SparseFeatureVectorUtils
+public class SparseFeatureVectorUtil
 {
     public static final String COMMENT_OUT = "//";
     public static final String NORMALIZATION = "Normalization";

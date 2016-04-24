@@ -173,7 +173,7 @@ public class OneClassSvm extends Svm
     @Override
     public void train(FeatureVector[] featureVectors)
     {
-        this.trainingFeatureVectors = FeatureVectorUtils.getTargetVectors(featureVectors, NORMAL_LABEL);
+        this.trainingFeatureVectors = FeatureVectorUtil.getTargetVectors(featureVectors, NORMAL_LABEL);
 
         if(this.method.equals(SCHOLKOPF))
             trainScholkopf();
@@ -291,8 +291,8 @@ public class OneClassSvm extends Svm
     {
         int tpCount = 0;
         int tnCount = 0;
-        List<FeatureVector> normalFeatureVectorList = FeatureVectorUtils.getTargetVectorList(featureVectorList, NORMAL_LABEL);
-        List<FeatureVector> outlierFeatureVectorList = FeatureVectorUtils.getTargetVectorList(featureVectorList, OUTLIER_LABEL);
+        List<FeatureVector> normalFeatureVectorList = FeatureVectorUtil.getTargetVectorList(featureVectorList, NORMAL_LABEL);
+        List<FeatureVector> outlierFeatureVectorList = FeatureVectorUtil.getTargetVectorList(featureVectorList, OUTLIER_LABEL);
         int normalSize = normalFeatureVectorList.size();
         int outlierSize = outlierFeatureVectorList.size();
         for(int i=0;i<normalSize;i++)
