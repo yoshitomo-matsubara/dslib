@@ -65,7 +65,7 @@ public class Kernel
 
     public double radialBasisFunctionKernel(double[] arrayX, double[] arrayY, double gamma)
     {
-        return Math.exp(-gamma * BasicAlgebra.calcEuclideanDistance(arrayX, arrayY));
+        return Math.exp(-gamma * Math.pow(BasicAlgebra.calcEuclideanDistance(arrayX, arrayY), 2.0d));
     }
 
     public double gaussianKernel(double[] arrayX, double[] arrayY, double sigma)
