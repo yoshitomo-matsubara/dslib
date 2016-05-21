@@ -106,4 +106,17 @@ public class Kernel
 
         return kernelMatrix;
     }
+
+    public double[][] calcKernelMatrix(FeatureVector[] featureVectorsX, FeatureVector[] featureVectorsY)
+    {
+        double[][] kernelMatrix = new double[featureVectorsX.length][featureVectorsY.length];
+        for(int i=0;i<kernelMatrix.length;i++)
+            for(int j=i;j<kernelMatrix[0].length;j++)
+            {
+                kernelMatrix[i][j] = kernelFunction(featureVectorsX[i].getAllValues(), featureVectorsY[j].getAllValues());
+                kernelMatrix[j][i] = kernelMatrix[i][j];
+            }
+
+        return kernelMatrix;
+    }
 }

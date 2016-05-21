@@ -23,9 +23,9 @@ public class DensityEstimator
         return 1.0d / lrd / (double)k;
     }
 
-    public static double[] optimizeKlParams(FeatureVector[] trainingFeatureVectors, Kernel kernel, double epsilon, double tolerance)
+    public static double[] optimizeKlParams(FeatureVector[] trainingFeatureVectors, FeatureVector[] testFeatureVectors, Kernel kernel, double epsilon, double tolerance)
     {
-        double[] alphas = new double[trainingFeatureVectors.length];
+        double[] alphas = new double[testFeatureVectors.length];
         double[] ones = new double[alphas.length];
         Random rand = new Random();
         for(int i=0;i<alphas.length;i++)
@@ -34,27 +34,31 @@ public class DensityEstimator
             alphas[i] = rand.nextDouble();
         }
 
-        double[][] kernelMatrix = kernel.calcKernelMatrix(trainingFeatureVectors);
-        double[] kernelSumArray = new double[kernelMatrix.length];
-        for(int i=0;i<kernelMatrix.length;i++)
+        double[][] kernelMatrix = kernel.calcKernelMatrix(testFeatureVectors, trainingFeatureVectors);
+        double[] kernelSumArray = new double[testFeatureVectors.length];
+        for(int i=0;i<kernelSumArray.length;i++)
         {
             kernelSumArray[i] = 0.0d;
-            for(int j=0;j<kernelMatrix[0].length;j++)
-                kernelSumArray[i] += kernelMatrix[i][j];
+            for(int j=0;j<kernelSumArray.length;j++)
+                if(i != j)
+                    kernelSumArray[i] += kernel.kernelFunction(testFeatureVectors[i].getAllValues(), testFeatureVectors[j].getAllValues());
 
-            kernelSumArray[i] /= (double)kernelMatrix[0].length;
+            kernelSumArray[i] /= (double)kernelSumArray.length;
         }
 
-        double ip = BasicAlgebra.calcInnerProduct(kernelSumArray, kernelSumArray);
         double diff = Double.MAX_VALUE;
         while(Math.abs(diff) > tolerance)
         {
             double magnitude = BasicAlgebra.calcMagnitude(alphas);
-            double[] array = BasicAlgebra.calcVectorDiff(ones, BasicAlgebra.calcMatrixProduct(kernelMatrix, alphas));
-            double[] arrayA = BasicAlgebra.calcMatrixProduct(BasicAlgebra.scalarMultiple(epsilon, kernelMatrix), array);
+            double[] matProd = BasicAlgebra.calcMatrixProduct(kernelMatrix, alphas);
+            double[] array = new double[matProd.length];
+            for(int i=0;i<array.length;i++)
+                array[i] = ones[i] - matProd[i];
+
+            double[] arrayA = BasicAlgebra.calcMatrixProduct(BasicAlgebra.scalarMultiple(epsilon, BasicAlgebra.transposeMatrix(kernelMatrix)), array);
             double[] alphasA = BasicAlgebra.calcVectorSum(alphas, arrayA);
             double ipB = BasicAlgebra.calcInnerProduct(kernelSumArray, alphasA);
-            double[] arrayB = BasicAlgebra.scalarMultiple((1.0d - ipB) / ip, kernelSumArray);
+            double[] arrayB = BasicAlgebra.scalarMultiple((1.0d - ipB) / BasicAlgebra.calcInnerProduct(kernelSumArray, kernelSumArray), kernelSumArray);
             double[] alphasB = BasicAlgebra.calcVectorSum(alphasA, arrayB);
             for(int i=0;i<alphasB.length;i++)
                 alphasB[i] = (alphasB[i] > 0.0d)? alphasB[i] : 0.0d;
@@ -69,7 +73,7 @@ public class DensityEstimator
 
     public static double[] estimateDensityRatioKullbackLeibler(FeatureVector[] trainingFeatureVectors, Kernel kernel, double epsilon, double tolerance, FeatureVector... testFeatureVectors)
     {
-        double[] alphas = optimizeKlParams(trainingFeatureVectors, kernel, epsilon, tolerance);
+        double[] alphas = optimizeKlParams(trainingFeatureVectors, testFeatureVectors, kernel, epsilon, tolerance);
         double[] densityRatios = new double[testFeatureVectors.length];
         for(int i=0;i<testFeatureVectors.length;i++)
         {
