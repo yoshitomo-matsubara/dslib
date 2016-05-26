@@ -25,27 +25,23 @@ public class DensityEstimator
 
     public static double[] optimizeKlParams(FeatureVector[] trainingFeatureVectors, FeatureVector[] testFeatureVectors, Kernel kernel, double epsilon, double tolerance)
     {
-        double[] alphas = new double[testFeatureVectors.length];
-        double[] ones = new double[alphas.length];
+        double[] alphas = new double[trainingFeatureVectors.length];
         Random rand = new Random();
         for(int i=0;i<alphas.length;i++)
-        {
-            ones[i] = 1.0d;
             alphas[i] = rand.nextDouble();
-        }
 
-        double[][] kernelMatrix = kernel.calcKernelMatrix(testFeatureVectors, trainingFeatureVectors);
-        double[] kernelSumArray = new double[testFeatureVectors.length];
+        double[][] kernelMatrix = kernel.calcKernelMatrix(trainingFeatureVectors);
+        double[] kernelSumArray = new double[trainingFeatureVectors.length];
         for(int i=0;i<kernelSumArray.length;i++)
         {
             kernelSumArray[i] = 0.0d;
-            for(int j=0;j<kernelSumArray.length;j++)
-                if(i != j)
-                    kernelSumArray[i] += kernel.kernelFunction(testFeatureVectors[i].getAllValues(), testFeatureVectors[j].getAllValues());
+            for(int j=0;j<testFeatureVectors.length;j++)
+                kernelSumArray[i] += kernel.kernelFunction(trainingFeatureVectors[i].getAllValues(), testFeatureVectors[j].getAllValues());
 
             kernelSumArray[i] /= (double)kernelSumArray.length;
         }
 
+        double btb = BasicAlgebra.calcInnerProduct(kernelSumArray, kernelSumArray);
         double diff = Double.MAX_VALUE;
         while(Math.abs(diff) > tolerance)
         {
@@ -53,12 +49,12 @@ public class DensityEstimator
             double[] matProd = BasicAlgebra.calcMatrixProduct(kernelMatrix, alphas);
             double[] array = new double[matProd.length];
             for(int i=0;i<array.length;i++)
-                array[i] = ones[i] - matProd[i];
+                array[i] = 1.0d / matProd[i];
 
             double[] arrayA = BasicAlgebra.calcMatrixProduct(BasicAlgebra.scalarMultiple(epsilon, BasicAlgebra.transposeMatrix(kernelMatrix)), array);
             double[] alphasA = BasicAlgebra.calcVectorSum(alphas, arrayA);
             double ipB = BasicAlgebra.calcInnerProduct(kernelSumArray, alphasA);
-            double[] arrayB = BasicAlgebra.scalarMultiple((1.0d - ipB) / BasicAlgebra.calcInnerProduct(kernelSumArray, kernelSumArray), kernelSumArray);
+            double[] arrayB = BasicAlgebra.scalarMultiple((1.0d - ipB) / btb, kernelSumArray);
             double[] alphasB = BasicAlgebra.calcVectorSum(alphasA, arrayB);
             for(int i=0;i<alphasB.length;i++)
                 alphasB[i] = (alphasB[i] > 0.0d)? alphasB[i] : 0.0d;
