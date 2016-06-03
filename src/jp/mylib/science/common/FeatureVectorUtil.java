@@ -160,6 +160,33 @@ public class FeatureVectorUtil
         }
     }
 
+    public static void doScaling(List<FeatureVector> vecList, double[] valuesX, double[] valuesY, String type)
+    {
+        int vecSize = vecList.size();
+        if(type.equals(NORMALIZATION))
+        {
+            for(int i=0;i<vecSize;i++)
+            {
+                double[] scaledValues = new double[vecList.get(i).getSize()];
+                for(int j=0;j<scaledValues.length;j++)
+                    scaledValues[j] = DataProcessor.normalize(vecList.get(i).getValue(j), valuesX[j], valuesY[j]);
+
+                vecList.get(i).replaceAllValues(scaledValues);
+            }
+        }
+        else if(type.equals(STANDARDIZATION))
+        {
+            for(int i=0;i<vecSize;i++)
+            {
+                double[] scaledValues = new double[vecList.get(i).getSize()];
+                for(int j=0;j<scaledValues.length;j++)
+                    scaledValues[j] = DataProcessor.standardize(vecList.get(i).getValue(j), valuesX[j], valuesY[j]);
+
+                vecList.get(i).replaceAllValues(scaledValues);
+            }
+        }
+    }
+
     public static void doScaling(FeatureVector[] featureVectors, FeatureVector[] baseVectors, String type)
     {
         if(type.equals(NORMALIZATION))
@@ -178,13 +205,21 @@ public class FeatureVectorUtil
         }
     }
 
-    public static void doScaling(FeatureVector[] featureVectors, String type)
+    public static void doScaling(List<FeatureVector> vecList, List<FeatureVector> baseVecList, String type)
     {
-        doScaling(featureVectors, featureVectors, type);
-    }
-
-    public static void doScaling(FeatureVector[] featureVectors)
-    {
-        doScaling(featureVectors, NORMALIZATION);
+        if(type.equals(NORMALIZATION))
+        {
+            double[] minValues = new double[vecList.get(0).getSize()];
+            double[] maxValues = new double[minValues.length];
+            getEachIndexMinMax(baseVecList.toArray(new FeatureVector[baseVecList.size()]), minValues, maxValues);
+            doScaling(vecList, minValues, maxValues, type);
+        }
+        else if(type.equals(STANDARDIZATION))
+        {
+            double[] aveValues = new double[vecList.get(0).getSize()];
+            double[] sdValues = new double[aveValues.length];
+            getEachIndexAveSd(baseVecList.toArray(new FeatureVector[baseVecList.size()]), aveValues, sdValues);
+            doScaling(vecList, aveValues, sdValues, type);
+        }
     }
 }
