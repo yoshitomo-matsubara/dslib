@@ -9,8 +9,8 @@ import java.util.List;
 public class FeatureVectorUtil
 {
     public static final String COMMENT_OUT = "//";
-    public static final String NORMALIZATION = "Normalization";
-    public static final String STANDARDIZATION = "Standardization";
+    public static final String NORMALIZATION = "min-max";
+    public static final String STANDARDIZATION = "std";
 
     /*
     [id] is optional
