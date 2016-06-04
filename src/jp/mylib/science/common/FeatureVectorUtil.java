@@ -134,6 +134,26 @@ public class FeatureVectorUtil
         }
     }
 
+    public static void doScaling(FeatureVector featureVector, double[] valuesX, double[] valuesY, String type)
+    {
+        if(type.equals(NORMALIZATION))
+        {
+            double[] scaledValues = new double[featureVector.getSize()];
+            for(int j=0;j<scaledValues.length;j++)
+                scaledValues[j] = DataProcessor.normalize(featureVector.getValue(j), valuesX[j], valuesY[j]);
+
+            featureVector.replaceAllValues(scaledValues);
+        }
+        else if(type.equals(STANDARDIZATION))
+        {
+            double[] scaledValues = new double[featureVector.getSize()];
+            for(int j=0;j<scaledValues.length;j++)
+                scaledValues[j] = DataProcessor.standardize(featureVector.getValue(j), valuesX[j], valuesY[j]);
+
+            featureVector.replaceAllValues(scaledValues);
+        }
+    }
+
     public static void doScaling(FeatureVector[] featureVectors, double[] valuesX, double[] valuesY, String type)
     {
         if(type.equals(NORMALIZATION))
