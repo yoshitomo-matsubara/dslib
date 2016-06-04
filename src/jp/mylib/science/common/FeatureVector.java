@@ -15,6 +15,15 @@ public class FeatureVector
         this.values = new double[size];
     }
 
+    public FeatureVector(String id, String label, double[] values)
+    {
+        this.id = id;
+        this.label = label;
+        this.values = new double[values.length];
+        for(int i=0;i<this.values.length;i++)
+            this.values[i] = values[i];
+    }
+
     public FeatureVector(String id, int size)
     {
         this(id, NONE_LABEL, size);
@@ -91,5 +100,10 @@ public class FeatureVector
         reset(size);
         for(int i=0;i<size;i++)
             this.values[i] = valueList.get(i);
+    }
+
+    public FeatureVector deepCopy()
+    {
+        return new FeatureVector(this.id, this.label, this.values);
     }
 }
