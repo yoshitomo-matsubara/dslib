@@ -120,6 +120,11 @@ public class FeatureVectorUtil
             }
     }
 
+    public static void getEachIndexMinMax(List<FeatureVector> vecList, double[] minValues, double[] maxValues)
+    {
+        getEachIndexMinMax(vecList.toArray(new FeatureVector[vecList.size()]), minValues, maxValues);
+    }
+
     public static void getEachIndexAveSd(FeatureVector[] featureVectors, double[] aveValues, double[] sdValues)
     {
         double[][] matrix = new double[aveValues.length][featureVectors.length];
@@ -132,6 +137,11 @@ public class FeatureVectorUtil
             aveValues[i] = BasicMath.calcAverage(matrix[i]);
             sdValues[i] = BasicMath.calcStandardDeviation(matrix[i], aveValues[i]);
         }
+    }
+
+    public static void getEachIndexAveSd(List<FeatureVector> vecList, double[] aveValues, double[] sdValues)
+    {
+        getEachIndexAveSd(vecList.toArray(new FeatureVector[vecList.size()]), aveValues, sdValues);
     }
 
     public static void doScaling(FeatureVector featureVector, double[] valuesX, double[] valuesY, String type)
