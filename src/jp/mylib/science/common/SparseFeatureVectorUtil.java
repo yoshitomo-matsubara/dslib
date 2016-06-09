@@ -79,7 +79,7 @@ public class SparseFeatureVectorUtil
 
     public static FeatureVector[] convertToFeatureVectors(SparseFeatureVector[] vectors)
     {
-        int maxIndex = -Integer.MAX_VALUE;
+        int maxIndex = Integer.MIN_VALUE;
         for(int i=0;i<vectors.length;i++)
         {
             int[] indices = vectors[i].getAllIndices();

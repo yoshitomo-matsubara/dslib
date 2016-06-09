@@ -220,7 +220,7 @@ public class OneClassSvm extends Svm
     private int predictWithoutTraining()
     {
         System.err.println("The train method must be called before the predict method.");
-        return -Integer.MAX_VALUE;
+        return Integer.MIN_VALUE;
     }
 
     @Override
