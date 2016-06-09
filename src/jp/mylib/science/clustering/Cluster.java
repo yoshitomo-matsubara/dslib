@@ -118,7 +118,7 @@ public class Cluster
                 HashMap<Integer, ArrayList<Integer>> tmpLabelMap = new HashMap<Integer, ArrayList<Integer>>();
                 double[] commonDists = new double[clusterSize];
                 for(int i=0;i<commonDists.length;i++)
-                    commonDists[i] = Double.MIN_VALUE;
+                    commonDists[i] = -Double.MAX_VALUE;
 
                 // find the nearest cluster
                 for(int i=0;i<featureVectors.length;i++)
@@ -135,7 +135,7 @@ public class Cluster
                             sum += kernel.kernelFunction(featureVectors[indexList.get(k)].getAllValues(), featureVectors[i].getAllValues());
 
                         dist = -sum * 2.0d / (double)indexSize;
-                        if(commonDists[j] == Double.MIN_VALUE)
+                        if(commonDists[j] == -Double.MAX_VALUE)
                         {
                             sum = 0.0d;
                             for(int k=0;k<indexSize;k++)
