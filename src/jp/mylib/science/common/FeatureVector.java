@@ -5,7 +5,8 @@ import java.util.List;
 public class FeatureVector
 {
     public static final String NONE_LABEL = "None";
-    private String id, label;
+    public final String id;
+    private String label;
     private double[] values;
 
     public FeatureVector(String id, String label, int size)
@@ -44,11 +45,6 @@ public class FeatureVector
     {
         for(int i=0;i<this.values.length;i++)
             this.values[i] = valueList.get(i);
-    }
-
-    public String getId()
-    {
-        return this.id;
     }
 
     public String getLabel()
