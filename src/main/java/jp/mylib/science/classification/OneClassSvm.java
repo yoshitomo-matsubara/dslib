@@ -133,7 +133,7 @@ public class OneClassSvm extends Svm {
         double c = 1.0d;
         solveQpUsingWss3(trainingSize, c);
         // calculate rho
-        ArrayList<Integer> indexList = new ArrayList<Integer>();
+        List<Integer> indexList = new ArrayList<>();
         for (int i = 0; i < this.alphas.length; i++) {
             if (0.0d < this.alphas[i] && this.alphas[i] < c) {
                 indexList.add(i);
@@ -153,7 +153,7 @@ public class OneClassSvm extends Svm {
         double c = this.regParam;
         solveQpUsingWss3(trainingSize, c);
         // calculate radius
-        ArrayList<Integer> indexList = new ArrayList<Integer>();
+        List<Integer> indexList = new ArrayList<>();
         for (int i = 0; i < this.alphas.length; i++) {
             if (0.0d < this.alphas[i] && this.alphas[i] < c) {
                 indexList.add(i);
@@ -283,7 +283,7 @@ public class OneClassSvm extends Svm {
 
     @Override
     public double doLeaveOneOutCrossValidation(FeatureVector[] featureVectors) {
-        return doLeaveOneOutCrossValidation(new ArrayList<FeatureVector>(Arrays.asList(featureVectors)));
+        return doLeaveOneOutCrossValidation(new ArrayList<>(Arrays.asList(featureVectors)));
     }
 
     public double[] doLeaveOneOutCrossValidationFrrFar(List<FeatureVector> featureVectorList) {

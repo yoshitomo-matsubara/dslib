@@ -23,7 +23,7 @@ public class FeatureVectorUtil {
      */
     public static FeatureVector[] generateFeatureVectors(String inputFilePath, boolean hasId) {
         File inputFile = new File(inputFilePath);
-        List<FeatureVector> vecList = new ArrayList<FeatureVector>();
+        List<FeatureVector> vecList = new ArrayList<>();
         int startIndex = (hasId)? 2 : 1;
         try {
             BufferedReader br = new BufferedReader(new FileReader(inputFile));
@@ -42,8 +42,8 @@ public class FeatureVectorUtil {
                     }
                 }
 
-                List<Integer> indexList = new ArrayList<Integer>();
-                List<Double> valueList = new ArrayList<Double>();
+                List<Integer> indexList = new ArrayList<>();
+                List<Double> valueList = new ArrayList<>();
                 String id = (hasId) ? params[0] : String.valueOf(vecCount);
                 String label = (hasId) ? params[1] : params[0];
                 FeatureVector featureVector = new FeatureVector(id, label, params.length - startIndex);
@@ -69,7 +69,7 @@ public class FeatureVectorUtil {
     }
 
     public static FeatureVector[] getTargetVectors(FeatureVector[] featureVectors, String targetLabel) {
-        ArrayList<FeatureVector> vectorList = new ArrayList<FeatureVector>();
+        List<FeatureVector> vectorList = new ArrayList<>();
         for (FeatureVector featureVector : featureVectors) {
             if (featureVector.getLabel().equals(targetLabel)) {
                 vectorList.add(featureVector);
@@ -84,7 +84,7 @@ public class FeatureVectorUtil {
     }
 
     public static List<FeatureVector> getTargetVectorList(List<FeatureVector> featureVectorList, String targetLabel) {
-        ArrayList<FeatureVector> vectorList = new ArrayList<FeatureVector>();
+        List<FeatureVector> vectorList = new ArrayList<>();
         for (FeatureVector featureVector : featureVectorList) {
             if (featureVector.getLabel().equals(targetLabel)) {
                 vectorList.add(featureVector);

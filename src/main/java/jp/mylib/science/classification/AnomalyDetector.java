@@ -8,11 +8,12 @@ import jp.mylib.science.statistics.Kernel;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 
 public class AnomalyDetector {
     private double calcLocalOutlierFactor(FeatureVector targetVector, FeatureVector[] featureVectors, int k) {
-        ArrayList<Double> distList = new ArrayList<Double>();
-        HashMap<Double, ArrayList<Integer>> distMap = new HashMap<Double, ArrayList<Integer>>();
+        List<Double> distList = new ArrayList<>();
+        HashMap<Double, ArrayList<Integer>> distMap = new HashMap<>();
         for (int i = 0; i < featureVectors.length; i++) {
             FeatureVector featureVector = featureVectors[i];
             double dist = BasicAlgebra.calcEuclideanDistance(featureVector.getAllValues(), targetVector.getAllValues());
@@ -24,9 +25,9 @@ public class AnomalyDetector {
         }
 
         Collections.sort(distList);
-        ArrayList<Integer> topKIndexList = new ArrayList<Integer>();
+        List<Integer> topKIndexList = new ArrayList<>();
         while (topKIndexList.size() >= k) {
-            ArrayList<Integer> indexList = distMap.get(topKIndexList.size());
+            List<Integer> indexList = distMap.get(topKIndexList.size());
             topKIndexList.addAll(indexList);
         }
 
@@ -53,7 +54,7 @@ public class AnomalyDetector {
 
     // Local Outlier Factor
     public int[] getOutlierIndicesBasedOnLof(FeatureVector[] featureVectors, int k, double threshold) {
-        ArrayList<Integer> outlierIdxList = new ArrayList<Integer>();
+        List<Integer> outlierIdxList = new ArrayList<>();
         for (int i = 0; i < featureVectors.length; i++) {
             double lof = calcLocalOutlierFactor(featureVectors[i], featureVectors, k);
             if (lof >= threshold) {
@@ -70,7 +71,7 @@ public class AnomalyDetector {
 
     // Kullback Leibler
     public int[] getOutlierIndicesBasedOnKl(FeatureVector[] trainingFeatureVectors, FeatureVector[] testFeatureVectors, Kernel kernel, double epsilon, double tolerance, double threshold) {
-        ArrayList<Integer> outlierIdxList = new ArrayList<Integer>();
+        List<Integer> outlierIdxList = new ArrayList<>();
         double[] densityRatios = DensityEstimator.estimateDensityRatioKullbackLeibler(trainingFeatureVectors, kernel, epsilon, tolerance, testFeatureVectors);
         for (int i = 0; i < densityRatios.length; i++) {
             if (densityRatios[i] < threshold) {

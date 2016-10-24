@@ -17,7 +17,7 @@ public class DataProcessor {
     }
 
     public static List<Double> normalize(List<Double> valueList, double min, double max) {
-        List<Double> list = new ArrayList<Double>();
+        List<Double> list = new ArrayList<>();
         for (int i = 0; i < list.size(); i++) {
             list.add(normalize(valueList.get(i), min, max));
         }
@@ -37,7 +37,7 @@ public class DataProcessor {
     }
 
     public static List<Double> standardize(List<Double> valueList, double min, double max) {
-        List<Double> list = new ArrayList<Double>();
+        List<Double> list = new ArrayList<>();
         for (int i = 0; i < list.size(); i++) {
             list.add(standardize(valueList.get(i), min, max));
         }
@@ -55,7 +55,7 @@ public class DataProcessor {
 
     public static List<Double> doCentering(List<Double> valueList) {
         double ave = BasicMath.calcAverage(valueList);
-        List<Double> list = new ArrayList<Double>();
+        List<Double> list = new ArrayList<>();
         for (int i = 0; i < valueList.size(); i++) {
             list.add(valueList.get(i) - ave);
         }

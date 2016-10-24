@@ -3,7 +3,6 @@ package jp.mylib.science.statistics;
 import jp.mylib.science.common.BasicAlgebra;
 import jp.mylib.science.common.FeatureVector;
 
-import java.util.Arrays;
 import java.util.Random;
 
 public class DensityEstimator {

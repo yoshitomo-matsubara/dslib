@@ -1,13 +1,14 @@
 package jp.mylib.science.common;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class SymmetricMatrix {
-    private ArrayList<Double> list;
+    private List<Double> list;
     private int size;
 
     public SymmetricMatrix(double[][] matrix) {
-        this.list = new ArrayList<Double>();
+        this.list = new ArrayList<>();
         if (matrix.length == 0 || matrix.length != matrix[0].length) {
             return;
         }

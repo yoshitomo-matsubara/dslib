@@ -7,6 +7,7 @@ import jp.mylib.science.statistics.Kernel;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Random;
 
 public class Cluster {
@@ -29,10 +30,10 @@ public class Cluster {
         }
 
         double diff = Double.MAX_VALUE;
-        HashMap<Integer, ArrayList<Integer>> labelMap = new HashMap<Integer, ArrayList<Integer>>();
+        HashMap<Integer, List<Integer>> labelMap = new HashMap<>();
         while (diff > tolerance) {
             diff = 0.0d;
-            labelMap = new HashMap<Integer, ArrayList<Integer>>();
+            labelMap = new HashMap<>();
             // find the nearest cluster
             for (int i = 0; i < featureVectors.length; i++) {
                 double minDist = Double.MAX_VALUE;
@@ -59,7 +60,7 @@ public class Cluster {
                     centers[label][i] = 0.0d;
                 }
 
-                ArrayList<Integer> indexList = labelMap.get(label);
+                List<Integer> indexList = labelMap.get(label);
                 for (int index : indexList) {
                     for (int i = 0; i < centers[0].length; i++) {
                         centers[label][i] += featureVectors[index].getValue(i);
@@ -75,7 +76,7 @@ public class Cluster {
 
         // set labels
         for (int label : labelMap.keySet()) {
-            ArrayList<Integer> indexList = labelMap.get(label);
+            List<Integer> indexList = labelMap.get(label);
             for (int index : indexList) {
                 featureVectors[index].setLabel(String.valueOf(label));
             }
@@ -90,7 +91,7 @@ public class Cluster {
         if (kernel.getType().equals(Kernel.LINEAR_KERNEL_TYPE)) {
             kMeans(clusterSize, featureVectors, tolerance);
         } else {
-            HashMap<Integer, ArrayList<Integer>> labelMap = new HashMap<Integer, ArrayList<Integer>>();
+            HashMap<Integer, List<Integer>> labelMap = new HashMap<>();
             // init weighted centers
             for (int i = 0; i < featureVectors.length; i++) {
                 Random rand = new Random();
@@ -104,7 +105,7 @@ public class Cluster {
             int diff = Integer.MAX_VALUE;
             while (diff > tolerance) {
                 diff = 0;
-                HashMap<Integer, ArrayList<Integer>> tmpLabelMap = new HashMap<Integer, ArrayList<Integer>>();
+                HashMap<Integer, ArrayList<Integer>> tmpLabelMap = new HashMap<>();
                 double[] commonDists = new double[clusterSize];
                 for (int i = 0; i < commonDists.length; i++) {
                     commonDists[i] = -Double.MAX_VALUE;
@@ -116,7 +117,7 @@ public class Cluster {
                     int minIndex = 0;
                     for (int j = 0; j < clusterSize; j++) {
                         double dist = 0.0d;
-                        ArrayList<Integer> indexList = labelMap.get(j);
+                        List<Integer> indexList = labelMap.get(j);
                         double sum = 0.0d;
                         int indexSize = indexList.size();
                         for (int k = 0; k < indexSize; k++) {
@@ -148,15 +149,15 @@ public class Cluster {
                 }
 
                 // update labels
-                ArrayList<Integer> labelCountList = new ArrayList<Integer>();
+                List<Integer> labelCountList = new ArrayList<>();
                 for (int key : labelMap.keySet()) {
                     labelCountList.add(labelMap.get(key).size());
                 }
 
-                labelMap = new HashMap<Integer, ArrayList<Integer>>();
+                labelMap = new HashMap<>();
                 int count = 0;
                 for (int label : tmpLabelMap.keySet()) {
-                    ArrayList<Integer> indexList = tmpLabelMap.get(label);
+                    List<Integer> indexList = tmpLabelMap.get(label);
                     labelMap.put(label, indexList);
                     diff += Math.abs(indexList.size() - labelCountList.get(count));
                     count++;
@@ -165,7 +166,7 @@ public class Cluster {
 
             // set labels
             for (int label : labelMap.keySet()) {
-                ArrayList<Integer> indexList = labelMap.get(label);
+                List<Integer> indexList = labelMap.get(label);
                 for (int index : indexList) {
                     featureVectors[index].setLabel(String.valueOf(label));
                 }

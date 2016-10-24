@@ -23,7 +23,7 @@ public class SparseFeatureVectorUtil {
      */
     public static SparseFeatureVector[] generateSparseFeatureVectors(String inputFilePath, boolean hasId) {
         File inputFile = new File(inputFilePath);
-        List<SparseFeatureVector> vecList = new ArrayList<SparseFeatureVector>();
+        List<SparseFeatureVector> vecList = new ArrayList<>();
         int startIndex = (hasId) ? 2 : 1;
         try {
             BufferedReader br = new BufferedReader(new FileReader(inputFile));
@@ -42,8 +42,8 @@ public class SparseFeatureVectorUtil {
                     }
                 }
 
-                List<Integer> indexList = new ArrayList<Integer>();
-                List<Double> valueList = new ArrayList<Double>();
+                List<Integer> indexList = new ArrayList<>();
+                List<Double> valueList = new ArrayList<>();
                 String id = (hasId) ? params[0] : String.valueOf(vecCount);
                 String label = (hasId) ? params[1] : params[0];
                 SparseFeatureVector SparseFeatureVector = new SparseFeatureVector(id, label, params.length - startIndex);
@@ -113,7 +113,7 @@ public class SparseFeatureVectorUtil {
     }
 
     public static SparseFeatureVector[] getTargetVectors(SparseFeatureVector[] SparseFeatureVectors, String targetLabel) {
-        ArrayList<SparseFeatureVector> vectorList = new ArrayList<SparseFeatureVector>();
+        List<SparseFeatureVector> vectorList = new ArrayList<>();
         for (SparseFeatureVector SparseFeatureVector : SparseFeatureVectors) {
             if (SparseFeatureVector.getLabel().equals(targetLabel)) {
                 vectorList.add(SparseFeatureVector);
@@ -128,7 +128,7 @@ public class SparseFeatureVectorUtil {
     }
 
     public static List<SparseFeatureVector> getTargetVectorList(List<SparseFeatureVector> SparseFeatureVectorList, String targetLabel) {
-        ArrayList<SparseFeatureVector> vectorList = new ArrayList<SparseFeatureVector>();
+        List<SparseFeatureVector> vectorList = new ArrayList<>();
         for (SparseFeatureVector SparseFeatureVector : SparseFeatureVectorList) {
             if (SparseFeatureVector.getLabel().equals(targetLabel)) {
                 vectorList.add(SparseFeatureVector);

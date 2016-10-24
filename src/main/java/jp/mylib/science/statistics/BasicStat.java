@@ -2,7 +2,7 @@ package jp.mylib.science.statistics;
 
 import jp.mylib.science.common.BasicMath;
 
-import java.util.ArrayList;
+import java.util.List;
 
 public class BasicStat {
     public double calcCorrel(double[] arrayX, double[] arrayY) {
@@ -34,7 +34,7 @@ public class BasicStat {
         return 1.0d / (Math.sqrt(2.0d * Math.PI) * sd) * Math.exp(-Math.pow((x - ave) / sd, 2.0d) / 2.0d);
     }
 
-    public double normDistPdf(double x, ArrayList<Double> samples) {
+    public double normDistPdf(double x, List<Double> samples) {
         double ave = BasicMath.calcAverage(samples);
         double sd = BasicMath.calcStandardDeviation(samples, ave);
         return 1.0d / (Math.sqrt(2.0d * Math.PI) * sd) * Math.exp(-Math.pow((x - ave) / sd, 2.0d) / 2.0d);
@@ -52,7 +52,7 @@ public class BasicStat {
         return 1.0d / Math.sqrt(2.0d * Math.PI) * Math.exp(-Math.pow(z, 2.0d) / 2.0d);
     }
 
-    public double stdNormDistPdf(double x, ArrayList<Double> list) {
+    public double stdNormDistPdf(double x, List<Double> list) {
         double ave = BasicMath.calcAverage(list);
         double sd = BasicMath.calcStandardDeviation(list, ave);
         double z = (x - ave) / sd;
