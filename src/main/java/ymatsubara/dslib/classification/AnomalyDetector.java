@@ -1,9 +1,9 @@
-package jp.mylib.science.classification;
+package ymatsubara.dslib.classification;
 
-import jp.mylib.science.common.BasicAlgebra;
-import jp.mylib.science.common.FeatureVector;
-import jp.mylib.science.statistics.DensityEstimator;
-import jp.mylib.science.statistics.Kernel;
+import ymatsubara.dslib.common.BasicAlgebra;
+import ymatsubara.dslib.common.FeatureVector;
+import ymatsubara.dslib.statistics.DensityEstimator;
+import ymatsubara.dslib.statistics.Kernel;
 
 import java.util.ArrayList;
 import java.util.Collections;

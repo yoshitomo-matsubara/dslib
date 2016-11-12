@@ -1,4 +1,4 @@
-package jp.mylib.science.common;
+package ymatsubara.dslib.common;
 
 import java.io.BufferedReader;
 import java.io.File;

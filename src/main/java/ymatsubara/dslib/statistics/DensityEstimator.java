@@ -1,7 +1,7 @@
-package jp.mylib.science.statistics;
+package ymatsubara.dslib.statistics;
 
-import jp.mylib.science.common.BasicAlgebra;
-import jp.mylib.science.common.FeatureVector;
+import ymatsubara.dslib.common.BasicAlgebra;
+import ymatsubara.dslib.common.FeatureVector;
 
 import java.util.Random;
 

@@ -1,6 +1,6 @@
-package jp.mylib.science.statistics;
+package ymatsubara.dslib.statistics;
 
-import jp.mylib.science.common.BasicMath;
+import ymatsubara.dslib.common.BasicMath;
 
 import java.util.List;
 
