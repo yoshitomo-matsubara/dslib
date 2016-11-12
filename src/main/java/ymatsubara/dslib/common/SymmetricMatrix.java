@@ -1,4 +1,4 @@
-package jp.mylib.science.common;
+package ymatsubara.dslib.common;
 
 import java.util.ArrayList;
 import java.util.List;

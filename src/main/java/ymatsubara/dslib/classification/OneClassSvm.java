@@ -1,7 +1,7 @@
-package jp.mylib.science.classification;
+package ymatsubara.dslib.classification;
 
-import jp.mylib.science.common.*;
-import jp.mylib.science.statistics.Kernel;
+import ymatsubara.dslib.common.*;
+import ymatsubara.dslib.statistics.Kernel;
 
 import java.io.*;
 import java.util.ArrayList;

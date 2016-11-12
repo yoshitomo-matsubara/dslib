@@ -1,6 +1,6 @@
-package jp.mylib.science.classification;
+package ymatsubara.dslib.classification;
 
-import jp.mylib.science.common.FeatureVector;
+import ymatsubara.dslib.common.FeatureVector;
 
 import java.util.List;
 

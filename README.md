@@ -1,4 +1,9 @@
-# MYLib for Data Science
+# Data Science Library
 
-This is my private Java library for study.  
-If you have suggestions or comments about this project, please contact me (English or Japanese).
+My private Maven project for data science.  
+
+## Requirement
+### Java 1.8+  
+
+### Library
+- commons-cli

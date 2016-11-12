@@ -1,6 +1,6 @@
-package jp.mylib.science.classification;
+package ymatsubara.dslib.classification;
 
-import jp.mylib.science.common.SymmetricMatrix;
+import ymatsubara.dslib.common.SymmetricMatrix;
 
 public class SvmUtil {
     public static String POSITIVE_LABEL = "1";

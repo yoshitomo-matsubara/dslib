@@ -1,9 +1,9 @@
-package jp.mylib.science.clustering;
+package ymatsubara.dslib.clustering;
 
-import jp.mylib.science.common.BasicAlgebra;
-import jp.mylib.science.common.FeatureVector;
-import jp.mylib.science.common.FeatureVectorUtil;
-import jp.mylib.science.statistics.Kernel;
+import ymatsubara.dslib.common.BasicAlgebra;
+import ymatsubara.dslib.common.FeatureVector;
+import ymatsubara.dslib.common.FeatureVectorUtil;
+import ymatsubara.dslib.statistics.Kernel;
 
 import java.util.ArrayList;
 import java.util.HashMap;
