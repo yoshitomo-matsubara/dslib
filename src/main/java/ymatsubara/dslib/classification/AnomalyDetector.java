@@ -13,7 +13,7 @@ import java.util.List;
 public class AnomalyDetector {
     private double calcLocalOutlierFactor(FeatureVector targetVector, FeatureVector[] featureVectors, int k) {
         List<Double> distList = new ArrayList<>();
-        HashMap<Double, ArrayList<Integer>> distMap = new HashMap<>();
+        HashMap<Double, List<Integer>> distMap = new HashMap<>();
         for (int i = 0; i < featureVectors.length; i++) {
             FeatureVector featureVector = featureVectors[i];
             double dist = BasicAlgebra.calcEuclideanDistance(featureVector.getAllValues(), targetVector.getAllValues());

@@ -105,7 +105,7 @@ public class Cluster {
             int diff = Integer.MAX_VALUE;
             while (diff > tolerance) {
                 diff = 0;
-                HashMap<Integer, ArrayList<Integer>> tmpLabelMap = new HashMap<>();
+                HashMap<Integer, List<Integer>> tmpLabelMap = new HashMap<>();
                 double[] commonDists = new double[clusterSize];
                 for (int i = 0; i < commonDists.length; i++) {
                     commonDists[i] = -Double.MAX_VALUE;
