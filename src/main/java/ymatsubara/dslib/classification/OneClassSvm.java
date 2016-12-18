@@ -8,8 +8,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class OneClassSvm extends Svm {
-    public static final String ONE_CLASS_SVM = "One-class SVM";
+public class OneClassSvm extends Model {
+    public static final String TYPE = "One-class SVM";
     public static final String SCHOLKOPF = "Scholkopf";
     public static final String TAX_AND_DUIN = "Tax and Duin";
     public static final String DELIMITER = "\t";
@@ -178,8 +178,8 @@ public class OneClassSvm extends Svm {
     }
 
     @Override
-    public void train(FeatureVector[] featureVectors) {
-        this.trainingFeatureVectors = FeatureVectorUtil.getTargetVectors(featureVectors, NORMAL_LABEL);
+    public void train(FeatureVector[] vecs) {
+        this.trainingFeatureVectors = FeatureVectorUtil.getTargetVectors(vecs, NORMAL_LABEL);
         if (this.method.equals(SCHOLKOPF)) {
             trainScholkopf();
         } else if (this.method.equals(TAX_AND_DUIN)) {
@@ -190,29 +190,32 @@ public class OneClassSvm extends Svm {
     }
 
     @Override
-    public void train(List<FeatureVector> featureVectorList) {
-        train(featureVectorList.toArray(new FeatureVector[featureVectorList.size()]));
+    public void train(List<FeatureVector> vecList) {
+        train(vecList.toArray(new FeatureVector[vecList.size()]));
     }
 
-    private int predictScholkopf(FeatureVector featureVector) {
+    private Result predictScholkopf(FeatureVector vec) {
         double score = 0.0d;
         if (this.kernel.getParams().length > 1) {
             for (int i = 0; i < this.alphas.length; i++) {
-                score += this.alphas[i] * this.kernel.kernelFunction(this.trainingFeatureVectors[i].getAllValues(), featureVector.getAllValues());
+                score += this.alphas[i] * this.kernel.kernelFunction(this.trainingFeatureVectors[i].getAllValues(), vec.getAllValues());
             }
         } else {
             for (int i = 0; i < this.alphas.length; i++) {
-                score += this.alphas[i] * this.kernel.kernelFunction(this.trainingFeatureVectors[i].getAllValues(), featureVector.getAllValues());
+                score += this.alphas[i] * this.kernel.kernelFunction(this.trainingFeatureVectors[i].getAllValues(), vec.getAllValues());
             }
         }
-        return (BasicMath.sgn(score - this.rho) == OUTLIER_VALUE) ? OUTLIER_VALUE : NORMAL_VALUE;
+
+        score -= this.rho;
+        String label = (BasicMath.sgn(score) == OUTLIER_VALUE) ? OUTLIER_LABEL : NORMAL_LABEL;
+        return new Result(vec, score, label);
     }
 
-    private int predictTaxAndDuin(FeatureVector featureVector) {
-        double score = BasicAlgebra.calcInnerProduct(featureVector.getAllValues(), featureVector.getAllValues());
+    private Result predictTaxAndDuin(FeatureVector vec) {
+        double score = BasicAlgebra.calcInnerProduct(vec.getAllValues(), vec.getAllValues());
         double sum = 0.0d;
         for (int i = 0; i < this.alphas.length; i++) {
-            sum += this.alphas[i] * this.kernel.kernelFunction(featureVector.getAllValues(), this.trainingFeatureVectors[i].getAllValues());
+            sum += this.alphas[i] * this.kernel.kernelFunction(vec.getAllValues(), this.trainingFeatureVectors[i].getAllValues());
         }
 
         score -= 2.0d * sum;
@@ -221,20 +224,23 @@ public class OneClassSvm extends Svm {
                 score += this.alphas[i] * this.alphas[j] * this.kernelMatrix.get(i, j);
             }
         }
-        return (score > this.squaredRadius) ? OUTLIER_VALUE : NORMAL_VALUE;
+
+        score -= this.squaredRadius;
+        String label = score > 0.0d ? OUTLIER_LABEL : NORMAL_LABEL;
+        return new Result(vec, score, label);
     }
 
-    private int predictWithoutTraining() {
+    private Result predictWithoutTraining() {
         System.err.println("The train method must be called before the predict method.");
-        return Integer.MIN_VALUE;
+        return null;
     }
 
     @Override
-    public int predict(FeatureVector featureVector) {
+    public Result predict(FeatureVector vec) {
         if (this.method.equals(SCHOLKOPF) && this.rho != Double.NaN) {
-            return predictScholkopf(featureVector);
+            return predictScholkopf(vec);
         } else if (this.method.equals(TAX_AND_DUIN) && this.squaredRadius != Double.NaN) {
-            return predictTaxAndDuin(featureVector);
+            return predictTaxAndDuin(vec);
         }
         return predictWithoutTraining();
     }
@@ -259,59 +265,37 @@ public class OneClassSvm extends Svm {
         reset(regParam, tolerance, new Kernel(kernelType, kernelParams));
     }
 
-    @Override
-    public double doLeaveOneOutCrossValidation(List<FeatureVector> featureVectorList) {
-        int successCount = 0;
-        int size = featureVectorList.size();
-        for (int i = 0; i < size; i++) {
-            FeatureVector testFeatureVector = featureVectorList.get(0);
-            featureVectorList.remove(0);
-            train(featureVectorList);
-            int predictedValue = predict(testFeatureVector);
-            if (predictedValue == NORMAL_VALUE && testFeatureVector.getLabel().equals(NORMAL_LABEL)) {
-                successCount++;
-            } else if (predictedValue == OUTLIER_VALUE && testFeatureVector.getLabel().equals(OUTLIER_LABEL)) {
-                successCount++;
-            }
-
-            featureVectorList.add(testFeatureVector);
-            reset(this.regParam, this.tolerance, this.kernel);
-        }
-        // return accuracy
-        return (double) successCount / (double) size;
-    }
-
-    @Override
-    public double doLeaveOneOutCrossValidation(FeatureVector[] featureVectors) {
-        return doLeaveOneOutCrossValidation(new ArrayList<>(Arrays.asList(featureVectors)));
-    }
-
-    public double[] doLeaveOneOutCrossValidationFrrFar(List<FeatureVector> featureVectorList) {
+    public double[] doLeaveOneOutCrossValidationTprTfr(List<FeatureVector> vecList) {
+        int normalSize = 0;
+        int outlierSize = 0;
         int tpCount = 0;
         int tnCount = 0;
-        List<FeatureVector> normalFeatureVectorList = FeatureVectorUtil.getTargetVectorList(featureVectorList, NORMAL_LABEL);
-        List<FeatureVector> outlierFeatureVectorList = FeatureVectorUtil.getTargetVectorList(featureVectorList, OUTLIER_LABEL);
-        int normalSize = normalFeatureVectorList.size();
-        int outlierSize = outlierFeatureVectorList.size();
-        for (int i = 0; i < normalSize; i++) {
-            FeatureVector testNormalVector = normalFeatureVectorList.get(0);
-            normalFeatureVectorList.remove(0);
-            train(normalFeatureVectorList);
-            if (predict(testNormalVector) == NORMAL_VALUE) {
-                tpCount++;
-            }
-
-            for (int j = 0; j < outlierSize; j++) {
-                if (predict(outlierFeatureVectorList.get(j)) == OUTLIER_VALUE) {
+        List<Result> resultList = doLeaveOneOutCrossValidation(vecList);
+        for (Result result : resultList) {
+            if (result.trueLabel.equals(NORMAL_LABEL)) {
+                normalSize++;
+                if (result.predictedLabel.equals(NORMAL_LABEL)) {
+                    tpCount++;
+                }
+            } else if (result.trueLabel.equals(OUTLIER_LABEL)){
+                outlierSize++;
+                if (result.predictedLabel.equals(OUTLIER_LABEL)) {
                     tnCount++;
                 }
             }
         }
-        // return FRR and FAR
-        return new double[]{(double) (normalSize - tpCount) / (double) normalSize, (double) (outlierSize - tnCount) / (double) outlierSize};
+
+        // return TPR and TFR
+        double tpr = normalSize > 0 ? (double) tpCount / (double) normalSize : 0.0d;
+        double tnr = outlierSize > 0 ? (double) tnCount / (double) outlierSize : 0.0d;
+        return new double[]{tpr, tnr};
     }
 
-    public void doParamsGridSearch(FeatureVector[] featureVectors, double[] regParams, double[][] kernelParamMatrix, boolean changeable) {
+    public double[] doLeaveOneOutCrossValidationTprTfr(FeatureVector[] vecs) {
+        return doLeaveOneOutCrossValidationTprTfr(Arrays.asList(vecs));
+    }
+
+    public void doParamsGridSearch(FeatureVector[] vecs, double[] regParams, double[][] kernelParamMatrix, boolean changeable) {
         // array[0]: start, array[1]: end, array[2]: step size
         // array[x][0]: start, array[x][1]: end, array[x][2]: step size
         double orgRegParam = this.regParam;
@@ -329,7 +313,8 @@ public class OneClassSvm extends Svm {
                 for (double a = kernelParamMatrix[0][0]; a <= kernelParamMatrix[0][1]; a += kernelParamMatrix[0][2]) {
                     this.regParam = c;
                     this.kernel.setParam(a, 0);
-                    double accuracy = doLeaveOneOutCrossValidation(featureVectors);
+                    double[] tprTfr = doLeaveOneOutCrossValidationTprTfr(vecs);
+                    double accuracy = BasicMath.calcAverage(tprTfr);
                     if (accuracy > bestAccuracy) {
                         bestAccuracy = accuracy;
                         bestRegParam = c;
@@ -342,7 +327,8 @@ public class OneClassSvm extends Svm {
                         this.regParam = c;
                         this.kernel.setParam(a, 0);
                         this.kernel.setParam(b, 1);
-                        double accuracy = doLeaveOneOutCrossValidation(featureVectors);
+                        double[] tprTfr = doLeaveOneOutCrossValidationTprTfr(vecs);
+                        double accuracy = BasicMath.calcAverage(tprTfr);
                         if (accuracy > bestAccuracy) {
                             bestAccuracy = accuracy;
                             bestRegParam = c;
@@ -371,7 +357,7 @@ public class OneClassSvm extends Svm {
         File modelFile = new File(modelFilePath);
         try {
             BufferedReader br = new BufferedReader(new FileReader(modelFile));
-            if (!br.readLine().equals(ONE_CLASS_SVM)) {
+            if (!br.readLine().equals(TYPE)) {
                 System.err.println(errorMsg);
                 return;
             }
@@ -434,7 +420,7 @@ public class OneClassSvm extends Svm {
         File modelFile = new File(modelFilePath);
         try {
             BufferedWriter bw = new BufferedWriter(new FileWriter(modelFile));
-            bw.write(ONE_CLASS_SVM);
+            bw.write(TYPE);
             bw.newLine();
             bw.write("id" + DELIMITER + this.id);
             bw.newLine();
