@@ -1,4 +1,4 @@
-package ymatsubara.dslib.common;
+package ymatsubara.dslib.structure;
 
 import java.util.List;
 

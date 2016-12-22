@@ -1,7 +1,13 @@
-package ymatsubara.dslib.classification;
+package ymatsubara.dslib.model;
 
-import ymatsubara.dslib.common.*;
+import ymatsubara.dslib.common.BasicAlgebra;
+import ymatsubara.dslib.common.BasicMath;
+import ymatsubara.dslib.optimization.Decomposition;
 import ymatsubara.dslib.statistics.Kernel;
+import ymatsubara.dslib.structure.Result;
+import ymatsubara.dslib.structure.FeatureVector;
+import ymatsubara.dslib.structure.SymmetricMatrix;
+import ymatsubara.dslib.util.FeatureVectorUtil;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -23,7 +29,7 @@ public class OneClassSvm extends Model {
     private Kernel kernel;
     private double[] alphas, gradients;
     private SymmetricMatrix kernelMatrix;
-    private FeatureVector[] trainingFeatureVectors;
+    private FeatureVector[] trainingVecs;
 
     public OneClassSvm(String id, double regParam, double tolerance, String method, Kernel kernel) {
         this.id = id;
@@ -51,7 +57,7 @@ public class OneClassSvm extends Model {
 
     // R. Fan et. al. "Working Set Selection Using Second Order Information for Training Support Vector Machines"
     private void solveQpUsingWss3(int trainingSize, double c) {
-        this.kernelMatrix = new SymmetricMatrix(this.kernel.calcKernelMatrix(this.trainingFeatureVectors));
+        this.kernelMatrix = new SymmetricMatrix(this.kernel.calcKernelMatrix(this.trainingVecs));
         // initialize an alpha array (Working Set Selection 3)
         this.alphas = new double[trainingSize];
         int[] labels = new int[trainingSize];
@@ -80,7 +86,7 @@ public class OneClassSvm extends Model {
         }
 
         while (true) {
-            int[] workingSet = SvmUtil.workingSetSelection3(c, WSS3_TAU, this.tolerance, labels, this.kernelMatrix, this.alphas, this.gradients);
+            int[] workingSet = Decomposition.workingSetSelection3(c, WSS3_TAU, this.tolerance, labels, this.kernelMatrix, this.alphas, this.gradients);
             int i = workingSet[0];
             int j = workingSet[1];
             if (j == -1) {
@@ -129,7 +135,7 @@ public class OneClassSvm extends Model {
 
     // B. Scholkopf et. al. "Support Vector Method for Novelty Detection"
     private void trainScholkopf() {
-        int trainingSize = this.trainingFeatureVectors.length;
+        int trainingSize = this.trainingVecs.length;
         double c = 1.0d;
         solveQpUsingWss3(trainingSize, c);
         // calculate rho
@@ -149,7 +155,7 @@ public class OneClassSvm extends Model {
 
     // D. Tax and R. Duin "Support Vector Data Description"
     private void trainTaxAndDuin() {
-        int trainingSize = this.trainingFeatureVectors.length;
+        int trainingSize = this.trainingVecs.length;
         double c = this.regParam;
         solveQpUsingWss3(trainingSize, c);
         // calculate radius
@@ -179,7 +185,7 @@ public class OneClassSvm extends Model {
 
     @Override
     public void train(FeatureVector[] vecs) {
-        this.trainingFeatureVectors = FeatureVectorUtil.getTargetVectors(vecs, NORMAL_LABEL);
+        this.trainingVecs = FeatureVectorUtil.getTargetVectors(vecs, NORMAL_LABEL);
         if (this.method.equals(SCHOLKOPF)) {
             trainScholkopf();
         } else if (this.method.equals(TAX_AND_DUIN)) {
@@ -198,11 +204,11 @@ public class OneClassSvm extends Model {
         double score = 0.0d;
         if (this.kernel.getParams().length > 1) {
             for (int i = 0; i < this.alphas.length; i++) {
-                score += this.alphas[i] * this.kernel.kernelFunction(this.trainingFeatureVectors[i].getAllValues(), vec.getAllValues());
+                score += this.alphas[i] * this.kernel.kernelFunction(this.trainingVecs[i].getAllValues(), vec.getAllValues());
             }
         } else {
             for (int i = 0; i < this.alphas.length; i++) {
-                score += this.alphas[i] * this.kernel.kernelFunction(this.trainingFeatureVectors[i].getAllValues(), vec.getAllValues());
+                score += this.alphas[i] * this.kernel.kernelFunction(this.trainingVecs[i].getAllValues(), vec.getAllValues());
             }
         }
 
@@ -215,7 +221,7 @@ public class OneClassSvm extends Model {
         double score = BasicAlgebra.calcInnerProduct(vec.getAllValues(), vec.getAllValues());
         double sum = 0.0d;
         for (int i = 0; i < this.alphas.length; i++) {
-            sum += this.alphas[i] * this.kernel.kernelFunction(vec.getAllValues(), this.trainingFeatureVectors[i].getAllValues());
+            sum += this.alphas[i] * this.kernel.kernelFunction(vec.getAllValues(), this.trainingVecs[i].getAllValues());
         }
 
         score -= 2.0d * sum;
@@ -251,7 +257,7 @@ public class OneClassSvm extends Model {
         this.kernelMatrix = new SymmetricMatrix(new double[0][0]);
         this.rho = Double.NaN;
         this.squaredRadius = Double.NaN;
-        this.trainingFeatureVectors = new FeatureVector[0];
+        this.trainingVecs = new FeatureVector[0];
     }
 
     public void reset(double regParam, double tolerance, Kernel kernel) {

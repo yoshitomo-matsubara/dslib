@@ -1,8 +1,8 @@
 package ymatsubara.dslib.clustering;
 
 import ymatsubara.dslib.common.BasicAlgebra;
-import ymatsubara.dslib.common.FeatureVector;
-import ymatsubara.dslib.common.FeatureVectorUtil;
+import ymatsubara.dslib.structure.FeatureVector;
+import ymatsubara.dslib.util.FeatureVectorUtil;
 import ymatsubara.dslib.statistics.Kernel;
 
 import java.util.ArrayList;
@@ -14,11 +14,11 @@ public class Cluster {
     public static final double DEFAULT_KMEANS_TOLERANCE = 1e-4d;
     public static final int DEFAULT_KMEANS_TOLERANCE_COUNT = 1;
 
-    public static void kMeans(int clusterSize, FeatureVector[] featureVectors, double tolerance) {
-        double[][] centers = new double[clusterSize][featureVectors[0].getSize()];
+    public static void kMeans(int clusterSize, FeatureVector[] vecs, double tolerance) {
+        double[][] centers = new double[clusterSize][vecs[0].getSize()];
         double[] minValues = new double[centers.length];
         double[] maxValues = new double[centers.length];
-        FeatureVectorUtil.getEachIndexMinMax(featureVectors, minValues, maxValues);
+        FeatureVectorUtil.getEachIndexMinMax(vecs, minValues, maxValues);
 
         // init weighted centers
         for (int i = 0; i < centers.length; i++) {
@@ -35,11 +35,11 @@ public class Cluster {
             diff = 0.0d;
             labelMap = new HashMap<>();
             // find the nearest cluster
-            for (int i = 0; i < featureVectors.length; i++) {
+            for (int i = 0; i < vecs.length; i++) {
                 double minDist = Double.MAX_VALUE;
                 int minIndex = 0;
                 for (int j = 0; j < centers.length; j++) {
-                    double dist = BasicAlgebra.calcEuclideanDistance(centers[j], featureVectors[i].getAllValues());
+                    double dist = BasicAlgebra.calcEuclideanDistance(centers[j], vecs[i].getAllValues());
                     if (dist < minDist) {
                         minDist = dist;
                         minIndex = j;
@@ -63,7 +63,7 @@ public class Cluster {
                 List<Integer> indexList = labelMap.get(label);
                 for (int index : indexList) {
                     for (int i = 0; i < centers[0].length; i++) {
-                        centers[label][i] += featureVectors[index].getValue(i);
+                        centers[label][i] += vecs[index].getValue(i);
                     }
                 }
 
@@ -78,22 +78,22 @@ public class Cluster {
         for (int label : labelMap.keySet()) {
             List<Integer> indexList = labelMap.get(label);
             for (int index : indexList) {
-                featureVectors[index].setLabel(String.valueOf(label));
+                vecs[index].setLabel(String.valueOf(label));
             }
         }
     }
 
-    public static void kMeans(int clusterSize, FeatureVector[] featureVectors) {
-        kMeans(clusterSize, featureVectors, DEFAULT_KMEANS_TOLERANCE);
+    public static void kMeans(int clusterSize, FeatureVector[] vecs) {
+        kMeans(clusterSize, vecs, DEFAULT_KMEANS_TOLERANCE);
     }
 
-    public static void kernelKMeans(int clusterSize, FeatureVector[] featureVectors, Kernel kernel, int tolerance) {
+    public static void kernelKMeans(int clusterSize, FeatureVector[] vecs, Kernel kernel, int tolerance) {
         if (kernel.getType().equals(Kernel.LINEAR_KERNEL_TYPE)) {
-            kMeans(clusterSize, featureVectors, tolerance);
+            kMeans(clusterSize, vecs, tolerance);
         } else {
             HashMap<Integer, List<Integer>> labelMap = new HashMap<>();
             // init weighted centers
-            for (int i = 0; i < featureVectors.length; i++) {
+            for (int i = 0; i < vecs.length; i++) {
                 Random rand = new Random();
                 int index = rand.nextInt(clusterSize);
                 if (!labelMap.containsKey(index)) {
@@ -112,7 +112,7 @@ public class Cluster {
                 }
 
                 // find the nearest cluster
-                for (int i = 0; i < featureVectors.length; i++) {
+                for (int i = 0; i < vecs.length; i++) {
                     double minDist = Double.MAX_VALUE;
                     int minIndex = 0;
                     for (int j = 0; j < clusterSize; j++) {
@@ -121,7 +121,7 @@ public class Cluster {
                         double sum = 0.0d;
                         int indexSize = indexList.size();
                         for (int k = 0; k < indexSize; k++) {
-                            sum += kernel.kernelFunction(featureVectors[indexList.get(k)].getAllValues(), featureVectors[i].getAllValues());
+                            sum += kernel.kernelFunction(vecs[indexList.get(k)].getAllValues(), vecs[i].getAllValues());
                         }
 
                         dist = -sum * 2.0d / (double) indexSize;
@@ -129,7 +129,7 @@ public class Cluster {
                             sum = 0.0d;
                             for (int k = 0; k < indexSize; k++) {
                                 for (int l = k; l < indexSize; l++) {
-                                    sum += kernel.kernelFunction(featureVectors[indexList.get(k)].getAllValues(), featureVectors[indexList.get(l)].getAllValues());
+                                    sum += kernel.kernelFunction(vecs[indexList.get(k)].getAllValues(), vecs[indexList.get(l)].getAllValues());
                                 }
                             }
                         } else {
@@ -168,13 +168,13 @@ public class Cluster {
             for (int label : labelMap.keySet()) {
                 List<Integer> indexList = labelMap.get(label);
                 for (int index : indexList) {
-                    featureVectors[index].setLabel(String.valueOf(label));
+                    vecs[index].setLabel(String.valueOf(label));
                 }
             }
         }
     }
 
-    public static void kernelKMeans(int clusterSize, FeatureVector[] featureVectors, Kernel kernel) {
-        kernelKMeans(clusterSize, featureVectors, kernel, DEFAULT_KMEANS_TOLERANCE_COUNT);
+    public static void kernelKMeans(int clusterSize, FeatureVector[] vecs, Kernel kernel) {
+        kernelKMeans(clusterSize, vecs, kernel, DEFAULT_KMEANS_TOLERANCE_COUNT);
     }
 }

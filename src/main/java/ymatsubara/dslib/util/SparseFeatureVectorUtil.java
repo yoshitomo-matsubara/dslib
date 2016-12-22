@@ -1,4 +1,8 @@
-package ymatsubara.dslib.common;
+package ymatsubara.dslib.util;
+
+import ymatsubara.dslib.common.BasicMath;
+import ymatsubara.dslib.structure.FeatureVector;
+import ymatsubara.dslib.structure.SparseFeatureVector;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -68,19 +72,19 @@ public class SparseFeatureVectorUtil {
         return vecList.toArray(new SparseFeatureVector[vecList.size()]);
     }
 
-    public static FeatureVector[] convertToFeatureVectors(SparseFeatureVector[] vectors) {
+    public static FeatureVector[] convertToFeatureVectors(SparseFeatureVector[] sparseVecs) {
         int maxIndex = Integer.MIN_VALUE;
-        for (int i = 0; i < vectors.length; i++) {
-            int[] indices = vectors[i].getAllIndices();
+        for (int i = 0; i < sparseVecs.length; i++) {
+            int[] indices = sparseVecs[i].getAllIndices();
             if (indices[indices.length - 1] > maxIndex) {
                 maxIndex = indices[indices.length - 1];
             }
         }
 
-        FeatureVector[] featureVectors = new FeatureVector[vectors.length];
-        for (int i = 0; i < vectors.length; i++) {
-            double[] orgValues = vectors[i].getAllValues();
-            int[] orgIndices = vectors[i].getAllIndices();
+        FeatureVector[] featureVecs = new FeatureVector[sparseVecs.length];
+        for (int i = 0; i < sparseVecs.length; i++) {
+            double[] orgValues = sparseVecs[i].getAllValues();
+            int[] orgIndices = sparseVecs[i].getAllIndices();
             for (int j = 0; j < orgIndices.length; j++) {
                 orgIndices[j]--;
             }
@@ -106,46 +110,46 @@ public class SparseFeatureVectorUtil {
                 values[j] = 0.0d;
             }
 
-            featureVectors[i] = new FeatureVector(vectors[i].getId(), vectors[i].getLabel(), maxIndex);
-            featureVectors[i].setValues(values);
+            featureVecs[i] = new FeatureVector(sparseVecs[i].getId(), sparseVecs[i].getLabel(), maxIndex);
+            featureVecs[i].setValues(values);
         }
-        return featureVectors;
+        return featureVecs;
     }
 
-    public static SparseFeatureVector[] getTargetVectors(SparseFeatureVector[] SparseFeatureVectors, String targetLabel) {
-        List<SparseFeatureVector> vectorList = new ArrayList<>();
-        for (SparseFeatureVector SparseFeatureVector : SparseFeatureVectors) {
-            if (SparseFeatureVector.getLabel().equals(targetLabel)) {
-                vectorList.add(SparseFeatureVector);
+    public static SparseFeatureVector[] getTargetVectors(SparseFeatureVector[] vecs, String targetLabel) {
+        List<SparseFeatureVector> vecList = new ArrayList<>();
+        for (SparseFeatureVector vec : vecs) {
+            if (vec.getLabel().equals(targetLabel)) {
+                vecList.add(vec);
             }
         }
 
-        SparseFeatureVector[] targetVectors = new SparseFeatureVector[vectorList.size()];
-        for (int i = 0; i < targetVectors.length; i++) {
-            targetVectors[i] = vectorList.get(i);
+        SparseFeatureVector[] targetVecs = new SparseFeatureVector[vecList.size()];
+        for (int i = 0; i < targetVecs.length; i++) {
+            targetVecs[i] = vecList.get(i);
         }
-        return targetVectors;
+        return targetVecs;
     }
 
-    public static List<SparseFeatureVector> getTargetVectorList(List<SparseFeatureVector> SparseFeatureVectorList, String targetLabel) {
+    public static List<SparseFeatureVector> getTargetVectorList(List<SparseFeatureVector> vecList, String targetLabel) {
         List<SparseFeatureVector> vectorList = new ArrayList<>();
-        for (SparseFeatureVector SparseFeatureVector : SparseFeatureVectorList) {
-            if (SparseFeatureVector.getLabel().equals(targetLabel)) {
-                vectorList.add(SparseFeatureVector);
+        for (SparseFeatureVector vec : vecList) {
+            if (vec.getLabel().equals(targetLabel)) {
+                vectorList.add(vec);
             }
         }
         return vectorList;
     }
 
-    public static void getEachIndexMinMax(SparseFeatureVector[] SparseFeatureVectors, double[] minValues, double[] maxValues) {
+    public static void getEachIndexMinMax(SparseFeatureVector[] vecs, double[] minValues, double[] maxValues) {
         for (int i = 0; i < minValues.length; i++) {
-            minValues[i] = SparseFeatureVectors[0].getValue(i);
-            maxValues[i] = SparseFeatureVectors[0].getValue(i);
+            minValues[i] = vecs[0].getValue(i);
+            maxValues[i] = vecs[0].getValue(i);
         }
 
-        for (int i = 1; i < SparseFeatureVectors.length; i++) {
+        for (int i = 1; i < vecs.length; i++) {
             for (int j = 0; j < minValues.length; j++) {
-                double value = SparseFeatureVectors[i].getValue(j);
+                double value = vecs[i].getValue(j);
                 if (value < minValues[j]) {
                     minValues[j] = value;
                 }
@@ -157,51 +161,51 @@ public class SparseFeatureVectorUtil {
         }
     }
 
-    public static void getEachIndexAveSd(SparseFeatureVector[] SparseFeatureVectors, double[] aveValues, double[] sdValues) {
-        double[][] matrix = new double[aveValues.length][SparseFeatureVectors.length];
-        for (int i = 0; i < SparseFeatureVectors.length; i++) {
+    public static void getEachIndexAveSd(SparseFeatureVector[] vecs, double[] aveValues, double[] sdValues) {
+        double[][] matrix = new double[aveValues.length][vecs.length];
+        for (int i = 0; i < vecs.length; i++) {
             for (int j = 0; j < aveValues.length; j++) {
-                matrix[j][i] = SparseFeatureVectors[i].getValue(j);
+                matrix[j][i] = vecs[i].getValue(j);
             }
         }
 
-        for (int i = 0; i < SparseFeatureVectors.length; i++) {
+        for (int i = 0; i < vecs.length; i++) {
             aveValues[i] = BasicMath.calcAverage(matrix[i]);
             sdValues[i] = BasicMath.calcStandardDeviation(matrix[i], aveValues[i]);
         }
     }
 
-    public static void doScaling(SparseFeatureVector[] SparseFeatureVectors, SparseFeatureVector[] baseVectors, String type) {
+    public static void doScaling(SparseFeatureVector[] vecs, SparseFeatureVector[] baseVecs, String type) {
         if (type.equals(NORMALIZATION)) {
-            double[] minValues = new double[SparseFeatureVectors[0].getSize()];
-            double[] maxValues = new double[SparseFeatureVectors[0].getSize()];
-            getEachIndexMinMax(baseVectors, minValues, maxValues);
-            for (int i = 0; i < SparseFeatureVectors.length; i++) {
-                double[] scaledValues = new double[SparseFeatureVectors[i].getSize()];
+            double[] minValues = new double[vecs[0].getSize()];
+            double[] maxValues = new double[vecs[0].getSize()];
+            getEachIndexMinMax(baseVecs, minValues, maxValues);
+            for (int i = 0; i < vecs.length; i++) {
+                double[] scaledValues = new double[vecs[i].getSize()];
                 for (int j = 0; j < scaledValues.length; j++) {
-                    scaledValues[j] = DataProcessor.normalize(SparseFeatureVectors[i].getValue(j), minValues[j], maxValues[j]);
+                    scaledValues[j] = DataProcessUtil.normalize(vecs[i].getValue(j), minValues[j], maxValues[j]);
                 }
-                SparseFeatureVectors[i].replaceAllValues(scaledValues);
+                vecs[i].replaceAllValues(scaledValues);
             }
         } else if (type.equals(STANDARDIZATION)) {
-            double[] aveValues = new double[SparseFeatureVectors[0].getSize()];
-            double[] sdValues = new double[SparseFeatureVectors[0].getSize()];
-            getEachIndexAveSd(baseVectors, aveValues, sdValues);
-            for (int i = 0; i < SparseFeatureVectors.length; i++) {
-                double[] scaledValues = new double[SparseFeatureVectors[i].getSize()];
+            double[] aveValues = new double[vecs[0].getSize()];
+            double[] sdValues = new double[vecs[0].getSize()];
+            getEachIndexAveSd(baseVecs, aveValues, sdValues);
+            for (int i = 0; i < vecs.length; i++) {
+                double[] scaledValues = new double[vecs[i].getSize()];
                 for (int j = 0; j < scaledValues.length; j++) {
-                    scaledValues[j] = DataProcessor.standardize(SparseFeatureVectors[i].getValue(j), aveValues[j], sdValues[j]);
+                    scaledValues[j] = DataProcessUtil.standardize(vecs[i].getValue(j), aveValues[j], sdValues[j]);
                 }
-                SparseFeatureVectors[i].replaceAllValues(scaledValues);
+                vecs[i].replaceAllValues(scaledValues);
             }
         }
     }
 
-    public static void doScaling(SparseFeatureVector[] SparseFeatureVectors, String type) {
-        doScaling(SparseFeatureVectors, SparseFeatureVectors, type);
+    public static void doScaling(SparseFeatureVector[] vecs, String type) {
+        doScaling(vecs, vecs, type);
     }
 
-    public static void doScaling(SparseFeatureVector[] SparseFeatureVectors) {
-        doScaling(SparseFeatureVectors, NORMALIZATION);
+    public static void doScaling(SparseFeatureVector[] vecs) {
+        doScaling(vecs, NORMALIZATION);
     }
 }

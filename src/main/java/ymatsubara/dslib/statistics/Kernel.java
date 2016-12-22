@@ -1,7 +1,7 @@
 package ymatsubara.dslib.statistics;
 
 import ymatsubara.dslib.common.BasicAlgebra;
-import ymatsubara.dslib.common.FeatureVector;
+import ymatsubara.dslib.structure.FeatureVector;
 
 public class Kernel {
     public static final String LINEAR_KERNEL_TYPE = "LINEAR KERNEL";
@@ -82,22 +82,22 @@ public class Kernel {
         return Double.NaN;
     }
 
-    public double[][] calcKernelMatrix(FeatureVector[] featureVectors) {
-        double[][] kernelMatrix = new double[featureVectors.length][featureVectors.length];
+    public double[][] calcKernelMatrix(FeatureVector[] vecs) {
+        double[][] kernelMatrix = new double[vecs.length][vecs.length];
         for (int i = 0; i < kernelMatrix.length; i++) {
             for (int j = i; j < kernelMatrix[0].length; j++) {
-                kernelMatrix[i][j] = kernelFunction(featureVectors[i].getAllValues(), featureVectors[j].getAllValues());
+                kernelMatrix[i][j] = kernelFunction(vecs[i].getAllValues(), vecs[j].getAllValues());
                 kernelMatrix[j][i] = kernelMatrix[i][j];
             }
         }
         return kernelMatrix;
     }
 
-    public double[][] calcKernelMatrix(FeatureVector[] featureVectorsX, FeatureVector[] featureVectorsY) {
-        double[][] kernelMatrix = new double[featureVectorsX.length][featureVectorsY.length];
+    public double[][] calcKernelMatrix(FeatureVector[] vecsX, FeatureVector[] vecsY) {
+        double[][] kernelMatrix = new double[vecsX.length][vecsY.length];
         for (int i = 0; i < kernelMatrix.length; i++) {
             for (int j = i; j < kernelMatrix[0].length; j++) {
-                kernelMatrix[i][j] = kernelFunction(featureVectorsX[i].getAllValues(), featureVectorsY[j].getAllValues());
+                kernelMatrix[i][j] = kernelFunction(vecsX[i].getAllValues(), vecsY[j].getAllValues());
                 kernelMatrix[j][i] = kernelMatrix[i][j];
             }
         }
