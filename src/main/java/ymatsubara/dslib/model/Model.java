@@ -1,4 +1,7 @@
-package ymatsubara.dslib.common;
+package ymatsubara.dslib.model;
+
+import ymatsubara.dslib.structure.FeatureVector;
+import ymatsubara.dslib.structure.Result;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -17,7 +20,7 @@ public abstract class Model {
 
     public Result[] predict(FeatureVector[] vecs) {
         Result[] results = new Result[vecs.length];
-        for (int i = 0; i < vecs.length ; i++) {
+        for (int i = 0; i < vecs.length; i++) {
             results[i] = predict(vecs[i]);
         }
         return results;

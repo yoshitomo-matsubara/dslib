@@ -59,7 +59,7 @@ public class BasicAlgebra {
         return ip;
     }
 
-    public static double[] getRow(double[][] matrix, int row) {
+    public static double[] extractRow(double[][] matrix, int row) {
         double[] array = new double[matrix.length];
         for (int i = 0; i < matrix.length; i++) {
             array[i] = matrix[i][row];
@@ -95,19 +95,19 @@ public class BasicAlgebra {
         return generateDiagonalMatrix(array);
     }
 
-    public static double[][] get2dRotationMatrix(double rad) {
+    public static double[][] rotate2dMatrix(double rad) {
         return new double[][]{{Math.cos(rad), -Math.sin(rad)}, {Math.sin(rad), Math.cos(rad)}};
     }
 
-    public static double[][] get3dxRotationMatrix(double rad) {
+    public static double[][] xrotate3dMatrix(double rad) {
         return new double[][]{{1.0d, 0.0d, 0.0d}, {0.0d, Math.cos(rad), -Math.sin(rad)}, {0.0d, Math.sin(rad), Math.cos(rad)}};
     }
 
-    public static double[][] get3dyRotationMatrix(double rad) {
+    public static double[][] yrotate3dMatrix(double rad) {
         return new double[][]{{Math.cos(rad), 0.0d, Math.sin(rad)}, {0.0d, 1.0d, 0.0d}, {-Math.sin(rad), 0.0d, Math.cos(rad)}};
     }
 
-    public static double[][] get3dzRotationMatrix(double rad) {
+    public static double[][] zrotate3dMatrix(double rad) {
         return new double[][]{{Math.cos(rad), -Math.sin(rad), 0.0d}, {Math.sin(rad), Math.cos(rad), 0.0d}, {0.0d, 0.0d, 1.0d}};
     }
 

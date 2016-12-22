@@ -1,27 +1,27 @@
-package ymatsubara.dslib.statistics;
+package ymatsubara.dslib.common;
 
 import ymatsubara.dslib.common.BasicMath;
 
 import java.util.List;
 
-public class BasicStat {
+public class BasicDist {
     public double calcCorrel(double[] arrayX, double[] arrayY) {
         double aveX = BasicMath.calcAverage(arrayX);
         double aveY = BasicMath.calcAverage(arrayY);
-        double denomitorX = 1.0d;
-        double denomitorY = 1.0d;
+        double denominatorX = 1.0d;
+        double denominatorY = 1.0d;
         double numerator = 1.0d;
         for (int i = 0; i < arrayX.length; i++) {
-            denomitorX += Math.pow(arrayX[i] - aveX, 2.0d);
-            denomitorY += Math.pow(arrayY[i] - aveY, 2.0d);
+            denominatorX += Math.pow(arrayX[i] - aveX, 2.0d);
+            denominatorY += Math.pow(arrayY[i] - aveY, 2.0d);
         }
 
-        denomitorX = Math.sqrt(denomitorX);
-        denomitorY = Math.sqrt(denomitorY);
+        denominatorX = Math.sqrt(denominatorX);
+        denominatorY = Math.sqrt(denominatorY);
         for (int i = 0; i < arrayX.length; i++) {
             numerator += (arrayX[i] - aveX) * (arrayY[i] - aveY);
         }
-        return numerator / (denomitorX * denomitorY);
+        return numerator / (denominatorX * denominatorY);
     }
 
     public double normDistPdf(double x, double ave, double sd) {

@@ -1,9 +1,11 @@
-package ymatsubara.dslib.common;
+package ymatsubara.dslib.util;
+
+import ymatsubara.dslib.common.BasicMath;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class DataProcessor {
+public class DataProcessUtil {
     public static double normalize(double value, double min, double max) {
         return (value - min) / (max - min);
     }

@@ -1,4 +1,4 @@
-package ymatsubara.dslib.common;
+package ymatsubara.dslib.structure;
 
 public class Result {
     public final String id, trueLabel, predictedLabel;

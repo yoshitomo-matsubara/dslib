@@ -1,8 +1,8 @@
-package ymatsubara.dslib.classification;
+package ymatsubara.dslib.optimization;
 
-import ymatsubara.dslib.common.SymmetricMatrix;
+import ymatsubara.dslib.structure.SymmetricMatrix;
 
-public class SvmUtil {
+public class Decomposition {
     public static String POSITIVE_LABEL = "1";
     public static String NEGATIVE_LABEL = "-1";
     public static int POSITIVE_VALUE = 1;

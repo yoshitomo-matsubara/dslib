@@ -1,4 +1,7 @@
-package ymatsubara.dslib.common;
+package ymatsubara.dslib.util;
+
+import ymatsubara.dslib.common.BasicMath;
+import ymatsubara.dslib.structure.FeatureVector;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -46,7 +49,7 @@ public class FeatureVectorUtil {
                 List<Double> valueList = new ArrayList<>();
                 String id = (hasId) ? params[0] : String.valueOf(vecCount);
                 String label = (hasId) ? params[1] : params[0];
-                FeatureVector featureVector = new FeatureVector(id, label, params.length - startIndex);
+                FeatureVector vec = new FeatureVector(id, label, params.length - startIndex);
                 for (int i = startIndex; i < params.length; i++) {
                     String[] keyValue = params[i].split(":");
                     if (keyValue.length == 2) {
@@ -57,8 +60,8 @@ public class FeatureVectorUtil {
                     }
                 }
 
-                featureVector.setValues(valueList);
-                vecList.add(featureVector);
+                vec.setValues(valueList);
+                vecList.add(vec);
                 vecCount++;
             }
             br.close();
@@ -68,40 +71,40 @@ public class FeatureVectorUtil {
         return vecList.toArray(new FeatureVector[vecList.size()]);
     }
 
-    public static FeatureVector[] getTargetVectors(FeatureVector[] featureVectors, String targetLabel) {
-        List<FeatureVector> vectorList = new ArrayList<>();
-        for (FeatureVector featureVector : featureVectors) {
-            if (featureVector.getLabel().equals(targetLabel)) {
-                vectorList.add(featureVector);
+    public static FeatureVector[] getTargetVectors(FeatureVector[] vecs, String targetLabel) {
+        List<FeatureVector> vecList = new ArrayList<>();
+        for (FeatureVector vec : vecs) {
+            if (vec.getLabel().equals(targetLabel)) {
+                vecList.add(vec);
             }
         }
 
-        FeatureVector[] targetVectors = new FeatureVector[vectorList.size()];
-        for (int i = 0; i < targetVectors.length; i++) {
-            targetVectors[i] = vectorList.get(i);
+        FeatureVector[] targetVecs = new FeatureVector[vecList.size()];
+        for (int i = 0; i < targetVecs.length; i++) {
+            targetVecs[i] = vecList.get(i);
         }
-        return targetVectors;
+        return targetVecs;
     }
 
-    public static List<FeatureVector> getTargetVectorList(List<FeatureVector> featureVectorList, String targetLabel) {
-        List<FeatureVector> vectorList = new ArrayList<>();
-        for (FeatureVector featureVector : featureVectorList) {
-            if (featureVector.getLabel().equals(targetLabel)) {
-                vectorList.add(featureVector);
+    public static List<FeatureVector> getTargetVectorList(List<FeatureVector> vecList, String targetLabel) {
+        List<FeatureVector> targetVecList = new ArrayList<>();
+        for (FeatureVector vec : vecList) {
+            if (vec.getLabel().equals(targetLabel)) {
+                targetVecList.add(vec);
             }
         }
-        return vectorList;
+        return targetVecList;
     }
 
-    public static void getEachIndexMinMax(FeatureVector[] featureVectors, double[] minValues, double[] maxValues) {
+    public static void getEachIndexMinMax(FeatureVector[] vecs, double[] minValues, double[] maxValues) {
         for (int i = 0; i < minValues.length; i++) {
-            minValues[i] = featureVectors[0].getValue(i);
-            maxValues[i] = featureVectors[0].getValue(i);
+            minValues[i] = vecs[0].getValue(i);
+            maxValues[i] = vecs[0].getValue(i);
         }
 
-        for (int i = 1; i < featureVectors.length; i++) {
+        for (int i = 1; i < vecs.length; i++) {
             for (int j = 0; j < minValues.length; j++) {
-                double value = featureVectors[i].getValue(j);
+                double value = vecs[i].getValue(j);
                 if (value < minValues[j]) {
                     minValues[j] = value;
                 }
@@ -117,15 +120,15 @@ public class FeatureVectorUtil {
         getEachIndexMinMax(vecList.toArray(new FeatureVector[vecList.size()]), minValues, maxValues);
     }
 
-    public static void getEachIndexAveSd(FeatureVector[] featureVectors, double[] aveValues, double[] sdValues) {
-        double[][] matrix = new double[aveValues.length][featureVectors.length];
-        for (int i = 0; i < featureVectors.length; i++) {
+    public static void getEachIndexAveSd(FeatureVector[] vecs, double[] aveValues, double[] sdValues) {
+        double[][] matrix = new double[aveValues.length][vecs.length];
+        for (int i = 0; i < vecs.length; i++) {
             for (int j = 0; j < aveValues.length; j++) {
-                matrix[j][i] = featureVectors[i].getValue(j);
+                matrix[j][i] = vecs[i].getValue(j);
             }
         }
 
-        for (int i = 0; i < featureVectors.length; i++) {
+        for (int i = 0; i < vecs.length; i++) {
             aveValues[i] = BasicMath.calcAverage(matrix[i]);
             sdValues[i] = BasicMath.calcStandardDeviation(matrix[i], aveValues[i]);
         }
@@ -135,38 +138,38 @@ public class FeatureVectorUtil {
         getEachIndexAveSd(vecList.toArray(new FeatureVector[vecList.size()]), aveValues, sdValues);
     }
 
-    public static void doScaling(FeatureVector featureVector, double[] valuesX, double[] valuesY, String type) {
+    public static void doScaling(FeatureVector vec, double[] valuesX, double[] valuesY, String type) {
         if (type.equals(NORMALIZATION)) {
-            double[] scaledValues = new double[featureVector.getSize()];
+            double[] scaledValues = new double[vec.getSize()];
             for (int j = 0; j < scaledValues.length; j++) {
-                scaledValues[j] = DataProcessor.normalize(featureVector.getValue(j), valuesX[j], valuesY[j]);
+                scaledValues[j] = DataProcessUtil.normalize(vec.getValue(j), valuesX[j], valuesY[j]);
             }
-            featureVector.replaceAllValues(scaledValues);
+            vec.replaceAllValues(scaledValues);
         } else if (type.equals(STANDARDIZATION)) {
-            double[] scaledValues = new double[featureVector.getSize()];
+            double[] scaledValues = new double[vec.getSize()];
             for (int j = 0; j < scaledValues.length; j++) {
-                scaledValues[j] = DataProcessor.standardize(featureVector.getValue(j), valuesX[j], valuesY[j]);
+                scaledValues[j] = DataProcessUtil.standardize(vec.getValue(j), valuesX[j], valuesY[j]);
             }
-            featureVector.replaceAllValues(scaledValues);
+            vec.replaceAllValues(scaledValues);
         }
     }
 
-    public static void doScaling(FeatureVector[] featureVectors, double[] valuesX, double[] valuesY, String type) {
+    public static void doScaling(FeatureVector[] vecs, double[] valuesX, double[] valuesY, String type) {
         if (type.equals(NORMALIZATION)) {
-            for (int i = 0; i < featureVectors.length; i++) {
-                double[] scaledValues = new double[featureVectors[i].getSize()];
+            for (int i = 0; i < vecs.length; i++) {
+                double[] scaledValues = new double[vecs[i].getSize()];
                 for (int j = 0; j < scaledValues.length; j++) {
-                    scaledValues[j] = DataProcessor.normalize(featureVectors[i].getValue(j), valuesX[j], valuesY[j]);
+                    scaledValues[j] = DataProcessUtil.normalize(vecs[i].getValue(j), valuesX[j], valuesY[j]);
                 }
-                featureVectors[i].replaceAllValues(scaledValues);
+                vecs[i].replaceAllValues(scaledValues);
             }
         } else if (type.equals(STANDARDIZATION)) {
-            for (int i = 0; i < featureVectors.length; i++) {
-                double[] scaledValues = new double[featureVectors[i].getSize()];
+            for (int i = 0; i < vecs.length; i++) {
+                double[] scaledValues = new double[vecs[i].getSize()];
                 for (int j = 0; j < scaledValues.length; j++) {
-                    scaledValues[j] = DataProcessor.standardize(featureVectors[i].getValue(j), valuesX[j], valuesY[j]);
+                    scaledValues[j] = DataProcessUtil.standardize(vecs[i].getValue(j), valuesX[j], valuesY[j]);
                 }
-                featureVectors[i].replaceAllValues(scaledValues);
+                vecs[i].replaceAllValues(scaledValues);
             }
         }
     }
@@ -177,7 +180,7 @@ public class FeatureVectorUtil {
             for (int i = 0; i < vecSize; i++) {
                 double[] scaledValues = new double[vecList.get(i).getSize()];
                 for (int j = 0; j < scaledValues.length; j++) {
-                    scaledValues[j] = DataProcessor.normalize(vecList.get(i).getValue(j), valuesX[j], valuesY[j]);
+                    scaledValues[j] = DataProcessUtil.normalize(vecList.get(i).getValue(j), valuesX[j], valuesY[j]);
                 }
                 vecList.get(i).replaceAllValues(scaledValues);
             }
@@ -185,24 +188,24 @@ public class FeatureVectorUtil {
             for (int i = 0; i < vecSize; i++) {
                 double[] scaledValues = new double[vecList.get(i).getSize()];
                 for (int j = 0; j < scaledValues.length; j++) {
-                    scaledValues[j] = DataProcessor.standardize(vecList.get(i).getValue(j), valuesX[j], valuesY[j]);
+                    scaledValues[j] = DataProcessUtil.standardize(vecList.get(i).getValue(j), valuesX[j], valuesY[j]);
                 }
                 vecList.get(i).replaceAllValues(scaledValues);
             }
         }
     }
 
-    public static void doScaling(FeatureVector[] featureVectors, FeatureVector[] baseVectors, String type) {
+    public static void doScaling(FeatureVector[] vecs, FeatureVector[] baseVecs, String type) {
         if (type.equals(NORMALIZATION)) {
-            double[] minValues = new double[featureVectors[0].getSize()];
-            double[] maxValues = new double[featureVectors[0].getSize()];
-            getEachIndexMinMax(baseVectors, minValues, maxValues);
-            doScaling(featureVectors, minValues, maxValues, type);
+            double[] minValues = new double[vecs[0].getSize()];
+            double[] maxValues = new double[minValues.length];
+            getEachIndexMinMax(baseVecs, minValues, maxValues);
+            doScaling(vecs, minValues, maxValues, type);
         } else if (type.equals(STANDARDIZATION)) {
-            double[] aveValues = new double[featureVectors[0].getSize()];
-            double[] sdValues = new double[featureVectors[0].getSize()];
-            getEachIndexAveSd(baseVectors, aveValues, sdValues);
-            doScaling(featureVectors, aveValues, sdValues, type);
+            double[] aveValues = new double[vecs[0].getSize()];
+            double[] sdValues = new double[aveValues.length];
+            getEachIndexAveSd(baseVecs, aveValues, sdValues);
+            doScaling(vecs, aveValues, sdValues, type);
         }
     }
 
