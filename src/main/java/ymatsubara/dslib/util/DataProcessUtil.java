@@ -7,6 +7,9 @@ import java.util.List;
 
 public class DataProcessUtil {
     public static double normalize(double value, double min, double max) {
+        if (min == max) {
+            return value;
+        }
         return (value - min) / (max - min);
     }
 
@@ -27,6 +30,9 @@ public class DataProcessUtil {
     }
 
     public static double standardize(double value, double ave, double sd) {
+        if (sd == 0.0d) {
+            return value;
+        }
         return (value - ave) / sd;
     }
 
