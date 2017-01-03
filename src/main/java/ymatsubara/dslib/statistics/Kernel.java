@@ -82,6 +82,10 @@ public class Kernel {
         return Double.NaN;
     }
 
+    public double kernelFunction(FeatureVector vecX, FeatureVector vecY) {
+        return kernelFunction(vecX.getAllValues(), vecY.getAllValues());
+    }
+
     public double[][] calcKernelMatrix(FeatureVector[] vecs) {
         double[][] kernelMatrix = new double[vecs.length][vecs.length];
         for (int i = 0; i < kernelMatrix.length; i++) {
