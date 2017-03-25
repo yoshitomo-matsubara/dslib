@@ -128,7 +128,7 @@ public class FeatureVectorUtil {
             }
         }
 
-        for (int i = 0; i < vecs.length; i++) {
+        for (int i = 0; i < aveValues.length; i++) {
             aveValues[i] = BasicMath.calcAverage(matrix[i]);
             sdValues[i] = BasicMath.calcStandardDeviation(matrix[i], aveValues[i]);
         }
