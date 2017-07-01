@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public abstract class Model {
+public abstract class AbstractModel {
     public static final String TYPE = "Abstract";
 
     public abstract void train(FeatureVector[] vecs);

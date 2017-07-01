@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class OneClassSvm extends Model {
+public class OneClassSvm extends AbstractModel {
     public static final String TYPE = "One-class SVM";
     public static final String SCHOLKOPF = "Scholkopf";
     public static final String TAX_AND_DUIN = "Tax and Duin";
