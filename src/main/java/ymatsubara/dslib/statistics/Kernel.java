@@ -29,7 +29,9 @@ public class Kernel {
     }
 
     public double[] getParams() {
-        return this.params;
+        double[] dstArray = new double[this.params.length];
+        System.arraycopy(this.params, 0, dstArray, 0, this.params.length);
+        return dstArray;
     }
 
     public void setType(String type) {
