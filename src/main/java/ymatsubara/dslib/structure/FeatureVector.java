@@ -52,7 +52,9 @@ public class FeatureVector {
     }
 
     public double[] getAllValues() {
-        return this.values;
+        double[] dstArray = new double[this.values.length];
+        System.arraycopy(this.values, 0, dstArray, 0, this.values.length);
+        return dstArray;
     }
 
     public int getSize() {
